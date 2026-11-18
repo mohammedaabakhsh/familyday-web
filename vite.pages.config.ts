@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
-const base = process.env.PAGES_BASE_PATH || "/familydaystay/";
+const base = process.env.PAGES_BASE_PATH || "/familyday-web/";
 if (!/^\/(?:[A-Za-z0-9._-]+\/)*$/.test(base)) {
   throw new Error("PAGES_BASE_PATH must be an absolute directory path ending in /.");
 }

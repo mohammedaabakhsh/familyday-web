@@ -26,10 +26,12 @@ jobs:
           node-version: '22'
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
+      - name: Read GitHub Pages URL
+        id: pages
+        uses: actions/configure-pages@v5
       - run: pnpm build:pages
         env:
-          PAGES_BASE_PATH: /familydaystay/
-      - uses: actions/configure-pages@v5
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist-pages
