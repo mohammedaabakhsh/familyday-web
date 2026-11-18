@@ -1492,6 +1492,12 @@ small {
 .resort-extras {
   margin: 20px 0;
 }
+.resort-extras [data-slot="accordion-content"] {
+  animation: none;
+}
+.resort-extras :is(button, summary, select) {
+  scroll-margin-block: 5rem calc(10rem + env(safe-area-inset-bottom));
+}
 .extras-trigger {
   padding: 19px 0;
   align-items: center;
