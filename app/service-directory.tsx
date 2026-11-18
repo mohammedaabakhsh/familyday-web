@@ -5,8 +5,10 @@ import { Armchair, BedSingle, CalendarDays, ChevronDown, Coffee, ConciergeBell, 
 import { BOOKING_ADDONS, type BookingAddon } from "./booking-addons";
 import { PackagePhotos } from "./addon-item";
 import guide from "./guest-service-guide.json";
+import serviceCatalog from "./resort-service-catalog.json";
 import { PROPERTIES } from "./property-catalog";
 
+const { games, cinema } = serviceCatalog.leisure;
 const currency = (price: number) => price.toLocaleString("ar-SA-u-nu-latn") + " ر.س";
 const byId = new Map(BOOKING_ADDONS.map(item => [item.id, item]));
 const resort = BOOKING_ADDONS.filter(item => item.property === "resort");
@@ -94,11 +96,11 @@ function Leisure({ chalet = false }: {chalet?: boolean}) {
       {guide.water.notes.map(note => <p className="guide-text" key={note}>{note}</p>)}
     </Section>
     <Section title="الألعاب الترفيهية" subtitle={chalet ? box.title + " · " + currency(box.price!) : "بوكس ألعاب أو طاولة مع البوكس"} icon={Gamepad2}>
-      <img className="guide-section-photo" src={guide.games.image} alt="الألعاب الجماعية المشمولة في البوكس" loading="lazy" />
+      <img className="guide-section-photo" src={games.image} alt="الألعاب الجماعية المشمولة في البوكس" loading="lazy" />
       <div className="guide-simple-item"><strong>{box.title}</strong><span className="guide-price">{currency(box.price!)}</span></div>
       {!chalet && <div className="guide-simple-item"><div><strong>{table.title}</strong><small>{table.description}</small></div><span className="guide-price">{currency(table.price!)}</span></div>}
-      <p className="guide-text">{guide.games.contents.join("، ")}</p>
-      {guide.games.notes.map(note => <p className="guide-text" key={note}>{note}</p>)}
+      <p className="guide-text">{games.contents.join("، ")}</p>
+      {games.notes.map(note => <p className="guide-text" key={note}>{note}</p>)}
     </Section>
   </>;
 }
@@ -116,11 +118,11 @@ function ResortGuide() {
       <Item item={cake} />
     </Section>
     <Section title="طاولات الطعام" subtitle="تجهيزات من 6 إلى 32 ضيفا" icon={Utensils}><DiningTable /></Section>
-    <Section title="جلسة السينما" subtitle={guide.cinema.duration + " في المساحة الخاصة بالكوخ · " + currency(guide.cinema.price)} icon={Projector}>
-      <Note>{guide.cinema.notes[0]}</Note>
-      <img className="guide-section-photo" src={guide.cinema.image} alt="جلسة السينما الخارجية في المنتجع" loading="lazy" />
-      <ul className="guide-bullets">{guide.cinema.contents.map(text => <li key={text}>{text}</li>)}</ul>
-      {guide.cinema.notes.slice(1).map(note => <p className="guide-text" key={note}>{note}</p>)}
+    <Section title="جلسة السينما" subtitle={cinema.duration + " في المساحة الخاصة بالكوخ · " + currency(cinema.price)} icon={Projector}>
+      <Note>{cinema.notes[0]}</Note>
+      <img className="guide-section-photo" src={cinema.image} alt="جلسة السينما الخارجية في المنتجع" loading="lazy" />
+      <ul className="guide-bullets">{cinema.contents.map(text => <li key={text}>{text}</li>)}</ul>
+      {cinema.notes.slice(1).map(note => <p className="guide-text" key={note}>{note}</p>)}
     </Section>
     <Section title="الضيافة" subtitle="الضيافة السعودية، ضيافة الاسترخاء والضيافة العائلية" icon={Coffee}>
       {resort.filter(item => item.group === "hospitality").map(item => <Item key={item.id} item={item} />)}

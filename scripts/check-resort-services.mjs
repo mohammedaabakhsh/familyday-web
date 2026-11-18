@@ -90,8 +90,9 @@ try {
   const menu = guide.menu.flatMap(group => group.items);
   assert.equal(menu.length, 47);
   for (const item of menu) assert.ok((item.bookingId ? catalog.get(item.bookingId)?.price : item.price) > 0, item.name);
-  assert.equal(guide.games.contents.length, 6);
-  assert.deepEqual(catalog.get("games-table").details, guide.games.contents);
+  const { leisure } = JSON.parse(readFileSync("app/resort-service-catalog.json", "utf8"));
+  assert.equal(leisure.games.contents.length, 6);
+  assert.deepEqual(catalog.get("games-table").details, leisure.games.contents);
   console.log("Booking selections, guide prices, cabin specifications, and legacy drafts passed.");
 } finally {
   await vite.close();

@@ -1,5 +1,5 @@
 import serviceCatalog from "./resort-service-catalog.json";
-import guide from "./guest-service-guide.json";
+const { games, cinema } = serviceCatalog.leisure;
 
 export type BookingAddon = {
   id: string;
@@ -37,10 +37,10 @@ export const BOOKING_ADDONS: BookingAddon[] = [
  {"id": "seating-4", "property": "resort", "group": "seating", "title": "جلسة بإطار خشبي · 4 أشخاص", "price": 300, "description": "إطار خشبي وطاولة أرضية، فرشات ومخدات، مع شموع وورود.", "details": [], "variantGroup": "outdoor", "capacity": 4, "image": "/assets/jalsat_4.webp"},
  {"id": "seating-8", "property": "resort", "group": "seating", "title": "جلسة بإطار خشبي · 8 أشخاص", "price": 550, "description": "إطار خشبي وطاولة أرضية، فرشات ومخدات، مع شموع وورود.", "details": [], "variantGroup": "outdoor", "capacity": 8, "image": "/assets/jalsat_5.webp"},
  {"id": "seating-12", "property": "resort", "group": "seating", "title": "جلسة بإطار خشبي · 12 شخصًا", "price": 650, "description": "إطار خشبي وطاولة أرضية، فرشات ومخدات، مع شموع وورود.", "details": [], "variantGroup": "outdoor", "capacity": 12, "image": "/assets/jalsat_6.webp"},
- {"id": "cinema-early", "property": "resort", "group": "fun", "title": "سينما · 7–10 مساء", "price": guide.cinema.price, "description": "3 ساعات · شاشة عرض خارجية، كرسيان مريحان، فشار وموهيتو لشخصين", "details": [], "variantGroup": "cinema", "variantLabel": "7–10 مساء"},
- {"id": "cinema-late", "property": "resort", "group": "fun", "title": "سينما · 11 مساء–2 صباحا", "price": guide.cinema.price, "description": "3 ساعات · شاشة عرض خارجية، كرسيان مريحان، فشار وموهيتو لشخصين", "details": [], "variantGroup": "cinema", "variantLabel": "11 مساء–2 صباحا"},
- {"id": "games-box", "property": "resort", "group": "fun", "title": "بوكس الألعاب", "price": 50, "description": "بوكس الألعاب الجماعية", "details": guide.games.contents, "variantGroup": "games", "variantLabel": "بوكس فقط"},
- {"id": "games-table", "property": "resort", "group": "fun", "title": "طاولة مع بوكس الألعاب", "price": 150, "description": "طاولة + 4 كراسي + بوكس الألعاب", "details": guide.games.contents, "variantGroup": "games", "variantLabel": "طاولة مع البوكس"},
+ {"id": "cinema-early", "property": "resort", "group": "fun", "title": "سينما · 7–10 مساء", "price": cinema.price, "description": "3 ساعات · شاشة عرض خارجية، كرسيان مريحان، فشار وموهيتو لشخصين", "details": [], "variantGroup": "cinema", "variantLabel": "7–10 مساء"},
+ {"id": "cinema-late", "property": "resort", "group": "fun", "title": "سينما · 11 مساء–2 صباحا", "price": cinema.price, "description": "3 ساعات · شاشة عرض خارجية، كرسيان مريحان، فشار وموهيتو لشخصين", "details": [], "variantGroup": "cinema", "variantLabel": "11 مساء–2 صباحا"},
+ {"id": "games-box", "property": "resort", "group": "fun", "title": "بوكس الألعاب", "price": 50, "description": "بوكس الألعاب الجماعية", "details": games.contents, "variantGroup": "games", "variantLabel": "بوكس فقط"},
+ {"id": "games-table", "property": "resort", "group": "fun", "title": "طاولة مع بوكس الألعاب", "price": 150, "description": "طاولة + 4 كراسي + بوكس الألعاب", "details": games.contents, "variantGroup": "games", "variantLabel": "طاولة مع البوكس"},
  {"id": "bbq-beef-plain", "property": "resort", "group": "essentials", "variantGroup": "bbq", "title": "بوكس الشواء · لحم · بدون فحم", "price": 85, "description": "مناسب لـ6 أشخاص · خبز وجبن وصوصات", "details": []},
  {"id": "bbq-beef-coal", "property": "resort", "group": "essentials", "variantGroup": "bbq", "title": "بوكس الشواء · لحم · مع الفحم", "price": 120, "description": "مناسب لـ6 أشخاص · خبز وجبن وصوصات", "details": []},
  {"id": "bbq-chicken-plain", "property": "resort", "group": "essentials", "variantGroup": "bbq", "title": "بوكس الشواء · دجاج · بدون فحم", "price": 85, "description": "مناسب لـ6 أشخاص · خبز وجبن وصوصات", "details": []},
