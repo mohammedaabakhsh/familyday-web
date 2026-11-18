@@ -7,6 +7,24 @@ import type { BookingAddon } from "./booking-addons";
 
 const format = (value: number) => value.toLocaleString("ar-SA-u-nu-latn");
 
+type OptionProps = {
+  addon: BookingAddon;
+  title: string;
+  selected: boolean;
+  onChoose: (addon: BookingAddon) => void;
+  description?: string;
+  included?: boolean;
+};
+
+export function AddonOption({ addon, title, selected, onChoose, description, included }: OptionProps) {
+  const price = included ? "مشمول في باقتك" : addon.price === undefined ? "السعر قيد التحديد" : format(addon.price) + " ر.س";
+  return <button type="button" className={selected ? "selected" : ""} aria-pressed={selected}
+    aria-label={(selected ? "إزالة " : "إضافة ") + addon.title} onClick={() => onChoose(addon)}>
+    <strong>{title}</strong>{description && <small>{description}</small>}
+    <span>{price}</span><span className="option-action">{selected ? "إزالة" : "إضافة"}</span>
+  </button>;
+}
+
 export function PackagePhotos({ photos, title }: { photos: string[]; title: string }) {
   const [index, setIndex] = useState(0);
   return (

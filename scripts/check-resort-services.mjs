@@ -30,6 +30,26 @@ try {
     assert.equal(price.total, price.baseStayAmount + expected);
   }
 
+  choose("saudi-hospitality");
+  choose("ice-box");
+  const oneNight = getResortPrice("2026-11-22", "2026-11-23", selection.ids.map(id => catalog.get(id)), selection.quantities, { cabinId: "1" });
+  assert.deepEqual([oneNight.stayAmount, oneNight.extrasAmount, oneNight.total], [800, 84, 884]);
+  choose("ice-box", 0);
+  checkExtras(59);
+  choose("saudi-hospitality", 0);
+  checkExtras(0);
+
+  choose("dining-6-plain");
+  choose("dining-12-decorated");
+  assert.deepEqual(selection.ids, ["dining-12-decorated"]);
+  choose("bbq-beef-plain");
+  choose("bbq-chicken-coal");
+  assert.deepEqual(selection.ids, ["dining-12-decorated", "bbq-chicken-coal"]);
+  choose("cinema-early");
+  choose("cinema-late");
+  assert.deepEqual(selection.ids, ["dining-12-decorated", "bbq-chicken-coal", "cinema-late"]);
+
+  selection = EMPTY_ADDONS;
   choose("ice-box", 2);
   checkExtras(50);
   choose("family-hospitality");

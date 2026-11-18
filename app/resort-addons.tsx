@@ -13,7 +13,7 @@ import { getAllowedAddons, type BookingAddon } from "./booking-addons";
 const groups = [
   { id: "hospitality", title: "الضيافة", icon: Coffee, hint: "السعودية، الاسترخاء، العائلية" },
   { id: "decor", title: "تنسيقات المناسبات", icon: Flower2, hint: "صور الباقات وتفاصيل التجهيز" },
-  { id: "essentials", title: "الطلبات الإضافية", icon: ShoppingBasket, hint: "مستلزمات الإقامة وبوكسات الشواء" },
+  { id: "essentials", title: "مستلزمات الإقامة والشواء", icon: ShoppingBasket, hint: "حافظة الثلج، المناشف وبوكسات الشواء" },
   { id: "fun", title: "الألعاب والسينما", icon: Gamepad2, hint: "بوكس الألعاب وجلسة السينما" },
   { id: "seating", title: "الجلسات الخارجية", icon: Armchair, hint: "اختر الجلسة وعدد الأشخاص" },
   { id: "dining", title: "طاولات الطعام", icon: UtensilsCrossed, hint: "عدد الضيوف وتجهيز الطاولة" },
@@ -40,7 +40,7 @@ export default function ResortAddons({ selection, onChange }: { selection: Addon
   }
 
   return (
-    <Accordion type="multiple" defaultValue={["hospitality"]} className="resort-extras">
+    <Accordion type="single" collapsible className="resort-extras">
       {groups.map(group => {
         const items = catalog.filter(item => item.group === group.id);
         const chosen = selected.filter(item => item.group === group.id);

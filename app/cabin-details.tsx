@@ -1,7 +1,6 @@
 "use client";
 
-import { Armchair, BedDouble, Check, ChefHat, ChevronLeft, Clock3, Home, Info, ShieldCheck, Sparkles, UtensilsCrossed, Waves } from "lucide-react";
-import type { ReactNode } from "react";
+import { Armchair, BedDouble, Check, ChefHat, ChevronLeft, Clock3, Home, Info, ShieldCheck, UtensilsCrossed, Waves } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import cabinData from "./cabins.json";
 import { getProperty } from "./property-catalog";
@@ -18,11 +17,10 @@ function FeatureList({ items }: { items: string[] }) {
 }
 
 type Props = {
-  cabin: Cabin; onPolicy: () => void; onBrowseExtras: () => void; onBrowseServices: () => void;
-  priceSummary?: ReactNode; checkoutLabel?: string;
+  cabin: Cabin; onPolicy: () => void; onBrowseServices: () => void; checkoutLabel?: string;
 };
 
-export default function CabinDetails({ cabin, onPolicy, onBrowseExtras, onBrowseServices, priceSummary, checkoutLabel = "12 ظهرًا" }: Props) {
+export default function CabinDetails({ cabin, onPolicy, onBrowseServices, checkoutLabel = "12 ظهرًا" }: Props) {
   const isResort = cabin.property === "resort";
   const place = getProperty(cabin.property)!;
   // Resort records contain the complete outdoor list in the source's display order.
@@ -40,10 +38,6 @@ export default function CabinDetails({ cabin, onPolicy, onBrowseExtras, onBrowse
     </div>
     {isResort && <p className="description">{cabin.description}</p>}
     {cabin.combinedNote && <aside className="cabin-combined-note"><strong>حجز الكوخين معا</strong><p>{cabin.combinedNote}</p></aside>}
-    {priceSummary}
-    {isResort && <button type="button" className="resort-offers-entry service-preview-entry" onClick={onBrowseExtras}>
-      <Sparkles size={21} /><span><strong>الضيافة والتنسيقات</strong><small>استعرض الباقات والطلبات الإضافية</small></span><ChevronLeft size={19} />
-    </button>}
     <Accordion type="multiple" defaultValue={isResort ? ["indoor"] : []} className="detail-accordion">
       <AccordionItem value="indoor"><AccordionTrigger><span><Home size={21} />المنطقة الداخلية</span></AccordionTrigger>
         <AccordionContent><FeatureList items={cabin.indoor} /></AccordionContent></AccordionItem>
@@ -53,12 +47,12 @@ export default function CabinDetails({ cabin, onPolicy, onBrowseExtras, onBrowse
         <AccordionContent><FeatureList items={cabin.kitchen} />{cabin.kitchenNote && <p className="detail-note"><Info size={17} />{cabin.kitchenNote}</p>}</AccordionContent></AccordionItem>
       <AccordionItem value="features"><AccordionTrigger><span><BedDouble size={21} />مميزات الإقامة</span></AccordionTrigger>
         <AccordionContent><FeatureList items={cabin.stayFeatures} /></AccordionContent></AccordionItem>
-      <AccordionItem value="services"><AccordionTrigger><span><UtensilsCrossed size={21} />الخدمات المتاحة</span></AccordionTrigger>
+      {!!cabin.availableServices?.length && <AccordionItem value="services"><AccordionTrigger><span><UtensilsCrossed size={21} />الخدمات المتاحة</span></AccordionTrigger>
         <AccordionContent>
-          {cabin.availableServices && <div className="available-service-list">{cabin.availableServices.map(service =>
-            <div key={service.title}><strong>{service.title}</strong><p>{service.detail}</p></div>)}</div>}
+          <div className="available-service-list">{cabin.availableServices.map(service =>
+            <div key={service.title}><strong>{service.title}</strong><p>{service.detail}</p></div>)}</div>
           <button className="cabin-source-link" onClick={onBrowseServices}>تصفح خدمات {place.shortName}<ChevronLeft size={17} /></button>
-        </AccordionContent></AccordionItem>
+        </AccordionContent></AccordionItem>}
       <AccordionItem value="information"><AccordionTrigger><span><Clock3 size={21} />{isResort ? "معلومات الإقامة" : "معلومات الإقامة والسياسات"}</span></AccordionTrigger>
         <AccordionContent><div className="stay-times"><span>الدخول<strong>4 مساء</strong></span><span>الخروج<strong>{checkoutLabel}</strong></span></div>
           {isResort ? <p className="detail-note"><Waves size={17} />مسابح الأكواخ مخصصة للكبار، ويسمح للأطفال باستخدامها تحت إشراف ذويهم طوال الوقت</p> :

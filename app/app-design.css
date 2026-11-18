@@ -975,10 +975,6 @@ small {
   margin-top: 4px;
   color: #516b7c;
 }
-.skip-addons {
-  display: block;
-  margin: 25px auto;
-}
 .review-grid {
   display: grid;
   gap: 18px;
@@ -2014,36 +2010,6 @@ small {
   justify-content: flex-end;
 }
 /* Resort offers: clear stay duration and an explicit choice before booking. */
-.resort-offers-entry {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 15px 16px;
-  margin: 18px 0 0;
-  border: 1px solid #cbdce4;
-  border-radius: 14px;
-  background: #f1f6f8;
-  color: var(--primary);
-  text-align: right;
-}
-.resort-offers-entry>span {
-  flex: 1;
-  min-width: 0;
-}
-.resort-offers-entry strong {
-  display: block;
-  font-size: 1rem;
-}
-.resort-offers-entry small {
-  display: block;
-  font-size: .8125rem;
-  color: #607987;
-  margin-top: 3px;
-}
-.resort-offers-entry:hover {
-  background: #eaf2f6;
-}
 .resort-offer-sheet {
   max-width: 760px!important;
 }
@@ -2320,9 +2286,6 @@ small {
 @media(max-width:360px) {
   .resort-offer-card {
     padding: 15px;
-  }
-  .resort-offers-entry {
-    padding: 13px 11px;
   }
   .resort-offers-intro {
     gap: 11px;
@@ -2661,15 +2624,13 @@ small {
   cursor: not-allowed;
 }
 
-.service-preview-entry { margin-block: 14px; }
 .service-item .extra-details summary { width: fit-content; min-height: 42px; padding-block: 10px; }
 .service-item .extra-details ul { list-style: disc; }
 .service-item .covered-count, .package-note { margin-block-start: 8px; }
 .service-counter { flex-wrap: wrap; gap: 8px; }
 .service-counter .line-amount { color: var(--brand-text); font-size: .875rem; }
 .service-counter output { min-width: 1.5em; text-align: center; }
-.extras-subtotal { display: grid; gap: 2px; color: var(--primary); }
-.extras-subtotal small, .package-note { color: var(--muted-foreground); }
+.package-note { color: var(--muted-foreground); }
 .package-photos { margin: 2px 0 10px; max-width: 36rem; }
 .package-photos img { display: block; width: 100%; height: clamp(12rem, 58vw, 19rem); object-fit: contain; border-radius: 12px; background: var(--secondary); }
 .package-photos figcaption { display: flex; align-items: center; justify-content: center; gap: 16px; padding-top: 4px; color: var(--primary); }
@@ -2683,3 +2644,20 @@ small {
 .service-item-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .package-thumbnail { flex: 0 0 auto; border-radius: 10px; overflow: hidden; }
 .package-thumbnail img { display: block; width: clamp(3.25rem, 14vw, 4.125rem); aspect-ratio: 1; height: auto; object-fit: cover; }
+
+.sticky-action .primary:only-child { flex: 1; max-width: none; width: 100%; }
+.cabin-booking-price { flex: 1; min-width: 0; }
+.cabin-booking-dates { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; font-size: .8rem; }
+.addons-intro { margin: 14px 0 10px; color: var(--muted-foreground); }
+.calendar-rate-choice { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
+.calendar-rate-choice label { display: flex; align-items: center; gap: 6px; color: var(--primary); font-weight: 650; }
+.calendar-rate-choice select { max-width: 100%; min-height: 42px; border: 1px solid var(--border); border-radius: 9px; padding: 5px 9px; background: white; }
+.calendar-offer-terms { margin: 4px 0 14px; font-size: .875rem; }
+.calendar-offer-terms summary { cursor: pointer; color: var(--brand-text); }
+.calendar-offer-terms ul { margin: 6px 0; padding-inline-start: 1.2em; list-style: disc; }
+.addon-option-group { min-width: 0; }
+.addon-option-group legend { font-weight: 650; color: var(--primary); padding: 0; }
+.extra-variants.immediate-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.immediate-options button { display: grid; align-content: start; justify-items: start; gap: 3px; min-width: 0; padding: 11px; text-align: start; }
+.immediate-options .option-action { margin-top: 4px; font-size: .8rem; font-weight: 700; color: var(--brand-text); text-decoration: underline; }
+.immediate-options .selected .option-action { color: inherit; }

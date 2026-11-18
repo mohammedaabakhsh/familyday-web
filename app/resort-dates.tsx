@@ -6,7 +6,7 @@ import { arSA } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { getNightlyRate, getResortPrice, nightCountLabel } from "./resort-pricing";
-import { getResortOffer, getOfferIssue, isOfferDay, nextStayDate, normalizeExtensionHours, offerCheckoutLabel, type ResortOfferId } from "./resort-offers";
+import { RESORT_OFFERS, getResortOffer, getOfferIssue, isOfferDay, nextStayDate, normalizeExtensionHours, offerCheckoutLabel, type ResortOfferId } from "./resort-offers";
 import { ResortPriceAction } from "./resort-price";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { loadAvailability, loadCabinCalendar, getStayAvailability, type AvailabilityResult, type CabinCalendarResult } from "./availability";
@@ -35,6 +35,15 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
   setRange(initialOffer?.shortStay ? from && isOfferDay(parseDate(from)) ? {from:parseDate(from),to:parseDate(nextStayDate(from))} : undefined : from && to ? {from:parseDate(from),to:parseDate(to)} : undefined);
   setMonth(from ? parseDate(from) : today()); setCheck(null);
  }, [open,from,to,cabinId,offerId,extensionHours]);
+ function selectOffer(id: string) {
+  const next = getResortOffer(id, cabinId);
+  setDraftOfferId(next?.id ?? null);
+  setExtraHours(0);
+  if (next?.shortStay) {
+   const arrival = range?.from;
+   setRange(arrival && isOfferDay(arrival) ? { from: arrival, to: parseDate(nextStayDate(dateKey(arrival))) } : undefined);
+  }
+ }
  const monthKey = dateKey(new Date(month.getFullYear(),month.getMonth(),1));
  const calendarKey = `${cabinId ?? ""}:${monthKey}`;
  useEffect(() => {
@@ -75,7 +84,16 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
   <SheetTitle>{cabinName ? `مواعيد ${cabinName}` : "اختر موعد إقامتك"}</SheetTitle>
   <SheetDescription>{offer?.shortStay ? "اختر يوم الوصول · المغادرة في اليوم التالي" : cabinName ? "اختر الوصول والمغادرة لهذا الكوخ" : "المنتجع · خليج سلمان"}</SheetDescription>
   <div className="sheet-scroll">
-   {offer && <div className="calendar-active-offer"><Tag size={17}/><div><strong>{offer.title}</strong><small>خصم {number(offer.discount)}٪ · السبت إلى الأربعاء</small></div><button className="text-button" onClick={()=>{setDraftOfferId(null);setExtraHours(0);}}>إزالة العرض</button></div>}
+   {cabinId && <div className="calendar-rate-choice">
+    <label htmlFor="resort-rate-plan"><Tag size={16}/>نوع الإقامة</label>
+    <select id="resort-rate-plan" value={offer?.id ?? ""} onChange={event => selectOffer(event.target.value)}>
+     <option value="">الإقامة بالسعر الأساسي</option>
+     {RESORT_OFFERS.map(plan => <option key={plan.id} value={plan.id}>{plan.title} · خصم {number(plan.discount)}٪</option>)}
+    </select>
+   </div>}
+   {offer && <details className="calendar-offer-terms"><summary>شروط {offer.title}</summary>
+    <ul>{offer.terms.map(term => <li key={term}>{term}</li>)}</ul>
+   </details>}
    <div className="sheet-date-labels"><span>الوصول · 4 عصرًا<strong>{dateLabel(range?.from)}</strong></span><span>المغادرة · {offerCheckoutLabel(offer,extraHours)}<strong>{dateLabel(range?.to)}</strong></span></div>
    <p className="calendar-instruction" aria-live="polite">{offer?.shortStay ? "اختر يوم الوصول لإقامة 10 ساعات" : !range?.from ? "اختر يوم الوصول أولا" : !complete ? "والآن اختر يوم المغادرة" : `مدة الإقامة: ${nightCountLabel(price?.nights ?? 0)}`}</p>
    {offer?.shortStay ? <Calendar {...sharedCalendar} mode="single" selected={range?.from} disabled={d=>dateKey(d)<dateKey(today())||!isOfferDay(d)} onSelect={day=>setRange(day?{from:day,to:parseDate(nextStayDate(dateKey(day)))}:undefined)}/> : <Calendar {...sharedCalendar} mode="range" min={1} selected={range} onSelect={setRange} disabled={{before:today()}}/>}
