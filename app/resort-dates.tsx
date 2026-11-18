@@ -59,6 +59,7 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
  const days = calendar?.key === calendarKey ? calendar.result : emptyCalendar;
  const status = cabinId && result ? getStayAvailability(cabinId,result) : "unknown";
  const blocked = status === "unavailable";
+ const rate = getNightlyRate(cabinId);
  const price = complete ? getResortPrice(arrival,departure,[],{},{cabinId,offerId:offer?.id,extensionHours:extraHours}) : null;
  const dayStatus = (d:Date) => days.connection === "connected" ? days.days.find(day => day.date === dateKey(d))?.status ?? "unknown" : "unknown";
  const sharedCalendar = {
@@ -85,7 +86,7 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
    {complete && !offerIssue && <p className={"range-status " + (blocked ? "unavailable" : status === "available" ? "available" : "")} role="status">{!result ? "جار التحقق من مدة الإقامة…" : blocked ? "الكوخ غير متاح لكامل هذه المدة. اختر موعدا آخر." : status === "available" ? "الكوخ متاح لكامل مدة إقامتك" : result.connection === "error" ? "تعذر التحقق من الموعد. حاول اختيار الموعد مرة أخرى." : "تم اختيار موعد الإقامة"}</p>}
    {range?.from && <button className="text-button" onClick={()=>setRange(undefined)}>مسح الاختيار</button>}
   </div>
-  {cabinId ? <div className="calendar-price-footer"><div><span>{offer ? offer.title : price ? `${number(getNightlyRate(cabinId))} ر.س × ${nightCountLabel(price.nights)}` : cabinId ? "للّيلة الواحدة" : "يبدأ من · لليلة الواحدة"}</span><small>{price?.savings ? `وفّرت ${number(price.savings)} ر.س · قبل الإضافات` : offerIssue ? "الموعد خارج العرض" : offer ? "اختر موعدًا مشمولًا بالعرض" : "قبل الإضافات الاختيارية"}</small></div><ResortPriceAction cabinId={cabinId} price={price} offerPreview={!price && offer ? {amount:Math.round(getNightlyRate(cabinId)*(1-offer.discount/100))+(offer.shortStay?extraHours*40:0),label:offer.shortStay?"سعر 10 ساعات":"سعر الليلة بالعرض"} : undefined}/></div> : <p className="price-caption">تختلف الأسعار حسب الكوخ. اختر موعدك لعرض سعر كل إقامة.</p>}
+  {cabinId ? <div className="calendar-price-footer"><div><span>{offer ? offer.title : price && rate !== null ? `${number(rate)} ر.س × ${nightCountLabel(price.nights)}` : cabinId ? "للّيلة الواحدة" : "يبدأ من · لليلة الواحدة"}</span><small>{price?.savings ? `وفّرت ${number(price.savings)} ر.س · قبل الإضافات` : offerIssue ? "الموعد خارج العرض" : offer ? "اختر موعدًا مشمولًا بالعرض" : "قبل الإضافات الاختيارية"}</small></div><ResortPriceAction cabinId={cabinId} price={price} offerPreview={!price && offer && rate !== null ? {amount:Math.round(rate*(1-offer.discount/100))+(offer.shortStay?extraHours*40:0),label:offer.shortStay?"سعر 10 ساعات":"سعر الليلة بالعرض"} : undefined}/></div> : <p className="price-caption">تختلف الأسعار حسب الكوخ. اختر موعدك لعرض سعر كل إقامة.</p>}
   <button className="primary" disabled={!complete || !result || blocked || !!offerIssue || result.connection === "error"} onClick={()=>onConfirm(arrival,departure,offer?.id??null,offer?.shortStay?extraHours:0)}><CalendarDays size={18}/>{cabinId ? "تأكيد الموعد والمتابعة" : "عرض الأكواخ لهذا الموعد"}</button>
  </SheetContent></Sheet>;
 }

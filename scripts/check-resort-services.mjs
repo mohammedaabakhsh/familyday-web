@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import { createServer } from "vite";
 
 const vite = await createServer({
@@ -9,10 +10,10 @@ const vite = await createServer({
   server: { middlewareMode: true, hmr: false },
 });
 try {
-  const { BOOKING_ADDONS } = await vite.ssrLoadModule("/app/booking-addons.ts");
+  const { BOOKING_ADDONS, getAllowedAddons } = await vite.ssrLoadModule("/app/booking-addons.ts");
   const { changeAddon, EMPTY_ADDONS, addonLinePrice, includedUnits } = await vite.ssrLoadModule("/app/addon-selection.ts");
   const { readBookingDraft } = await vite.ssrLoadModule("/app/booking-draft.ts");
-  const { getResortPrice } = await vite.ssrLoadModule("/app/resort-pricing.ts");
+  const { getResortPrice, getNightlyRate } = await vite.ssrLoadModule("/app/resort-pricing.ts");
   const catalog = new Map(BOOKING_ADDONS.map(item => [item.id, item]));
   let selection = EMPTY_ADDONS;
   function choose(id, count = 1) {
@@ -62,7 +63,36 @@ try {
   assert.deepEqual(recovered.addons, ["ice-box"]);
   assert.deepEqual(recovered.addonQuantities, { "ice-box": 2 });
   assert.equal(recovered.from, "2026-11-22");
-  console.log("Service quantities, package inclusions, review totals and legacy drafts passed.");
+
+  const cabins = JSON.parse(readFileSync("app/cabins.json", "utf8")).filter(c => c.property === "resort");
+  assert.deepEqual(cabins.map(c => c.id), [1,12,2,3,4,13,5,6,7,8,9,10]);
+  for (const unit of cabins) {
+    assert.equal(unit.outdoor.at(-1), "شواية", unit.name);
+    assert.ok(unit.outdoor.some(fact => fact.includes("140 سم")), unit.name);
+    assert.ok(unit.indoor.some(fact => fact.includes("حمام")), unit.name);
+    assert.ok(unit.images.every(path => existsSync("public" + path)), unit.name);
+    assert.equal(Boolean(unit.combinedNote), [3,9].includes(unit.id));
+    if ([1,12].includes(unit.id)) assert.ok(unit.indoor.includes("صالة داخلية مدمجة مع غرفة النوم"));
+  }
+  for (const id of ["12", "13"]) {
+    assert.equal(getNightlyRate(id), null, "no fallback rate for unpriced individual cabins");
+    const price = getResortPrice("2026-11-22", "2026-11-24", [catalog.get("ice-box")], {}, {cabinId: id, offerId: "midweek"});
+    assert.equal(price.nightlyRate, null);
+    assert.equal(price.stayAmount, null);
+    assert.equal(price.total, null);
+    assert.equal(price.extrasAmount, 25);
+    assert.equal(price.offer.id, "midweek");
+  }
+  assert.equal(getAllowedAddons("stay", "20").length, 0);
+  assert.deepEqual(getAllowedAddons("stay", "21"), getAllowedAddons("stay", "both"));
+  assert.equal(getAllowedAddons("stay", "21")[0].id, "water-game");
+  const guide = JSON.parse(readFileSync("app/guest-service-guide.json", "utf8"));
+  const menu = guide.menu.flatMap(group => group.items);
+  assert.equal(menu.length, 47);
+  for (const item of menu) assert.ok((item.bookingId ? catalog.get(item.bookingId)?.price : item.price) > 0, item.name);
+  assert.equal(guide.games.contents.length, 6);
+  assert.deepEqual(catalog.get("games-table").details, guide.games.contents);
+  console.log("Booking selections, guide prices, cabin specifications, and legacy drafts passed.");
 } finally {
   await vite.close();
 }

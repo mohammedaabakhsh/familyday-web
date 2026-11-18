@@ -45,7 +45,7 @@ export const PROPERTIES: Property[] = [
     id: "chalet", kind: "chalet", name: "شاليه يوم العائلة", shortName: "الشاليه", typeLabel: "شاليه",
     description: "وجهة جديدة تنضم إلى يوم العائلة",
     branch: "فرع المروج", location: "جدة · المروج", image: "", browseLabel: "اكتشف الوجهة", unitsLabel: "الشاليه",
-    chooseLabel: "احجز إقامتك", roomFilters: false, mapUrl: "",
+    chooseLabel: "احجز إقامتك", roomFilters: false, mapUrl: "https://maps.app.goo.gl/np6uD3XvCQTCr4ff7",
   },
 ];
 

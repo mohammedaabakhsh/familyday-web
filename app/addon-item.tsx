@@ -7,7 +7,7 @@ import type { BookingAddon } from "./booking-addons";
 
 const format = (value: number) => value.toLocaleString("ar-SA-u-nu-latn");
 
-function PackagePhotos({ photos, title }: { photos: string[]; title: string }) {
+export function PackagePhotos({ photos, title }: { photos: string[]; title: string }) {
   const [index, setIndex] = useState(0);
   return (
     <figure className="package-photos">
