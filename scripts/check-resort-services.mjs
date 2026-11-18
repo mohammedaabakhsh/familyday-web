@@ -14,6 +14,15 @@ try {
   const { changeAddon, EMPTY_ADDONS, addonLinePrice, includedUnits } = await vite.ssrLoadModule("/app/addon-selection.ts");
   const { readBookingDraft } = await vite.ssrLoadModule("/app/booking-draft.ts");
   const { getResortPrice, getNightlyRate } = await vite.ssrLoadModule("/app/resort-pricing.ts");
+  const { readRoute, routeHash, isBookingStep } = await vite.ssrLoadModule("/app/booking-navigation.ts");
+  for (const resume of [undefined, "review", "cabin"]) {
+    assert.deepEqual(readRoute(routeHash("dates", "1", resume), "departure"), { screen: "dates", id: "1", resume, field: "departure" });
+  }
+  assert.equal(readRoute("#dates/1/other", "invalid").resume, undefined);
+  assert.equal(readRoute("#dates/1", "invalid").field, undefined);
+  assert.deepEqual(readRoute("#addons/12"), { screen: "addons", id: "12" });
+  assert.ok(isBookingStep("dates"));
+  assert.ok(!isBookingStep("services"));
   const catalog = new Map(BOOKING_ADDONS.map(item => [item.id, item]));
   let selection = EMPTY_ADDONS;
   function choose(id, count = 1) {
@@ -34,6 +43,8 @@ try {
   choose("ice-box");
   const oneNight = getResortPrice("2026-11-22", "2026-11-23", selection.ids.map(id => catalog.get(id)), selection.quantities, { cabinId: "1" });
   assert.deepEqual([oneNight.stayAmount, oneNight.extrasAmount, oneNight.total], [800, 84, 884]);
+  const twoNights = getResortPrice("2026-11-22", "2026-11-24", selection.ids.map(id => catalog.get(id)), selection.quantities, { cabinId: "1" });
+  assert.deepEqual([twoNights.stayAmount, twoNights.extrasAmount, twoNights.total], [1600, 84, 1684]);
   choose("ice-box", 0);
   checkExtras(59);
   choose("saudi-hospitality", 0);
@@ -87,6 +98,10 @@ try {
   const cabins = JSON.parse(readFileSync("app/cabins.json", "utf8")).filter(c => c.property === "resort");
   assert.deepEqual(cabins.map(c => c.id), [1,12,2,3,4,13,5,6,7,8,9,10]);
   for (const unit of cabins) {
+    assert.ok(!unit.description.includes(unit.suitable), unit.name);
+    assert.ok(!unit.stayFeatures.some(feature => feature.includes("سائق")), unit.name);
+    if (unit.rooms === 1) assert.ok(unit.indoor.includes("سرير مزدوج"), unit.name);
+    else assert.ok(unit.indoor.includes("سريران مفردان في الغرفة الثانية"), unit.name);
     assert.equal(unit.outdoor.at(-1), "شواية", unit.name);
     assert.ok(unit.outdoor.some(fact => fact.includes("140 سم")), unit.name);
     assert.ok(unit.indoor.some(fact => fact.includes("حمام")), unit.name);
@@ -107,6 +122,7 @@ try {
   assert.deepEqual(getAllowedAddons("stay", "21"), getAllowedAddons("stay", "both"));
   assert.equal(getAllowedAddons("stay", "21")[0].id, "water-game");
   const guide = JSON.parse(readFileSync("app/guest-service-guide.json", "utf8"));
+  assert.ok(guide.notes.driver.includes("حسب التوفر"));
   const menu = guide.menu.flatMap(group => group.items);
   assert.equal(menu.length, 47);
   for (const item of menu) assert.ok((item.bookingId ? catalog.get(item.bookingId)?.price : item.price) > 0, item.name);

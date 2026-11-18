@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { getNightlyRate, getResortPrice, nightCountLabel } from "./resort-pricing";
 import { RESORT_OFFERS, getResortOffer, getOfferIssue, isOfferDay, nextStayDate, normalizeExtensionHours, offerCheckoutLabel, type ResortOfferId } from "./resort-offers";
 import { ResortPriceAction } from "./resort-price";
+import type { DateField } from "./booking-navigation";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { loadAvailability, loadCabinCalendar, getStayAvailability, type AvailabilityResult, type CabinCalendarResult } from "./availability";
 
@@ -17,11 +18,12 @@ const parseDate = (s: string) => new Date(`${s}T12:00:00`);
 const today = () => parseDate(new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Riyadh",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()));
 const dateLabel = (d?: Date) => d ? d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", {day:"numeric",month:"short"}) : "اختر اليوم";
 const emptyCalendar: CabinCalendarResult = { connection:"not_configured", days:[] };
-type Props = { open: boolean; cabinId?: string; cabinName?: string; from: string; to: string; offerId?: ResortOfferId | null; extensionHours?: number; onClose: () => void; onConfirm: (from: string, to: string, offerId: ResortOfferId | null, extensionHours: number) => void };
+type Props = { open: boolean; cabinId?: string; cabinName?: string; from: string; to: string; offerId?: ResortOfferId | null; extensionHours?: number; initialField?: DateField; confirmLabel?: string; onClose?: () => void; onConfirm: (from: string, to: string, offerId: ResortOfferId | null, extensionHours: number) => void };
 
-export default function ResortDates({open,cabinId,cabinName,from,to,offerId = null,extensionHours = 0,onClose,onConfirm}: Props) {
+export default function ResortDates({open,cabinId,cabinName,from,to,offerId = null,extensionHours = 0,initialField,confirmLabel,onClose,onConfirm}: Props) {
  const [range,setRange] = useState<DateRange>();
  const [month,setMonth] = useState(today);
+ const [editing,setEditing] = useState<DateField | null>(null);
  const [draftOfferId,setDraftOfferId] = useState<ResortOfferId | null>(offerId);
  const [extraHours,setExtraHours] = useState(extensionHours);
  const [calendar,setCalendar] = useState<{key:string; result:CabinCalendarResult} | null>(null);
@@ -33,15 +35,37 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
   setDraftOfferId(initialOffer?.id ?? null);
   setExtraHours(initialOffer?.shortStay ? normalizeExtensionHours(extensionHours) : 0);
   setRange(initialOffer?.shortStay ? from && isOfferDay(parseDate(from)) ? {from:parseDate(from),to:parseDate(nextStayDate(from))} : undefined : from && to ? {from:parseDate(from),to:parseDate(to)} : undefined);
-  setMonth(from ? parseDate(from) : today()); setCheck(null);
- }, [open,from,to,cabinId,offerId,extensionHours]);
+  setEditing(initialField === "departure" && (!from || initialOffer?.shortStay) ? "arrival" : initialField ?? null);
+  setMonth(initialField === "departure" && from && to ? parseDate(to) : from ? parseDate(from) : today());
+  setCheck(null);
+ }, [open,from,to,cabinId,offerId,extensionHours,initialField]);
  function selectOffer(id: string) {
   const next = getResortOffer(id, cabinId);
   setDraftOfferId(next?.id ?? null);
   setExtraHours(0);
+  setEditing(null);
   if (next?.shortStay) {
    const arrival = range?.from;
    setRange(arrival && isOfferDay(arrival) ? { from: arrival, to: parseDate(nextStayDate(dateKey(arrival))) } : undefined);
+  }
+ }
+ function editField(field: DateField) {
+  setEditing(field);
+  const day = field === "arrival" ? range?.from : range?.to ?? range?.from;
+  if (day) setMonth(day);
+ }
+ function selectDay(day?: Date) {
+  if (!day) return;
+  if (offer?.shortStay) {
+   setRange({ from: day, to: parseDate(nextStayDate(dateKey(day))) });
+   setEditing(null);
+  } else if (editing === "departure" && range?.from) {
+   if (day <= range.from) return;
+   setRange({ from: range.from, to: day });
+   setEditing(null);
+  } else {
+   setRange({ from: day, to: undefined });
+   setEditing("departure");
   }
  }
  const monthKey = dateKey(new Date(month.getFullYear(),month.getMonth(),1));
@@ -78,12 +102,9 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
   formatters:{formatDay:(d:Date)=>number(d.getDate()),formatCaption:(d:Date)=>d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{month:"long",year:"numeric"})},
   labels:{labelNext:()=>"الشهر التالي",labelPrevious:()=>"الشهر السابق",labelNav:()=>"التنقل بين الأشهر",labelDayButton:(d:Date)=>`${d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{weekday:"long",day:"numeric",month:"long"})}${offer&&!isOfferDay(d)?"، خارج أيام العرض":""}${cabinId ? dayStatus(d)==="available" ? "، ليلة متاحة" : dayStatus(d)==="unavailable" ? "، ليلة محجوزة" : "" : ""}`},className:"fd-calendar"
  };
- return <Sheet open={open} onOpenChange={value => { if (!value) onClose(); }}><SheetContent side="bottom" className="date-sheet resort-date-sheet" showCloseButton={false} dir="rtl">
-  <div className="sheet-handle"/>
-  <SheetClose asChild><button className="sheet-close icon-button" aria-label="إغلاق التقويم"><X size={23}/></button></SheetClose>
-  <SheetTitle>{cabinName ? `مواعيد ${cabinName}` : "اختر موعد إقامتك"}</SheetTitle>
-  <SheetDescription>{offer?.shortStay ? "اختر يوم الوصول · المغادرة في اليوم التالي" : cabinName ? "اختر الوصول والمغادرة لهذا الكوخ" : "المنتجع · خليج سلمان"}</SheetDescription>
-  <div className="sheet-scroll">
+ const title = cabinName ? `مواعيد ${cabinName}` : "اختر موعد إقامتك";
+ const content = <>
+  <div className={cabinId ? "cabin-date-form" : "sheet-scroll"}>
    {cabinId && <div className="calendar-rate-choice">
     <label htmlFor="resort-rate-plan"><Tag size={16}/>نوع الإقامة</label>
     <select id="resort-rate-plan" value={offer?.id ?? ""} onChange={event => selectOffer(event.target.value)}>
@@ -94,17 +115,41 @@ export default function ResortDates({open,cabinId,cabinName,from,to,offerId = nu
    {offer && <details className="calendar-offer-terms"><summary>شروط {offer.title}</summary>
     <ul>{offer.terms.map(term => <li key={term}>{term}</li>)}</ul>
    </details>}
-   <div className="sheet-date-labels"><span>الوصول · 4 عصرًا<strong>{dateLabel(range?.from)}</strong></span><span>المغادرة · {offerCheckoutLabel(offer,extraHours)}<strong>{dateLabel(range?.to)}</strong></span></div>
-   <p className="calendar-instruction" aria-live="polite">{offer?.shortStay ? "اختر يوم الوصول لإقامة 10 ساعات" : !range?.from ? "اختر يوم الوصول أولا" : !complete ? "والآن اختر يوم المغادرة" : `مدة الإقامة: ${nightCountLabel(price?.nights ?? 0)}`}</p>
-   {offer?.shortStay ? <Calendar {...sharedCalendar} mode="single" selected={range?.from} disabled={d=>dateKey(d)<dateKey(today())||!isOfferDay(d)} onSelect={day=>setRange(day?{from:day,to:parseDate(nextStayDate(dateKey(day)))}:undefined)}/> : <Calendar {...sharedCalendar} mode="range" min={1} selected={range} onSelect={setRange} disabled={{before:today()}}/>}
+   {cabinId ? <div className="sheet-date-labels cabin-date-fields">
+    <button type="button" aria-label="تعديل تاريخ الوصول" aria-pressed={editing === "arrival"} onClick={() => editField("arrival")}>
+     الوصول · 4 عصرًا<strong>{dateLabel(range?.from)}</strong>
+    </button>
+    <button type="button" aria-label="تعديل تاريخ المغادرة" aria-pressed={editing === "departure"}
+     disabled={!range?.from || !!offer?.shortStay} onClick={() => editField("departure")}>
+     المغادرة · {offerCheckoutLabel(offer,extraHours)}<strong>{dateLabel(range?.to)}</strong>
+    </button>
+   </div> : <div className="sheet-date-labels"><span>الوصول · 4 عصرًا<strong>{dateLabel(range?.from)}</strong></span>
+    <span>المغادرة · {offerCheckoutLabel(offer,extraHours)}<strong>{dateLabel(range?.to)}</strong></span></div>}
+   <p className="calendar-instruction" aria-live="polite">{offer?.shortStay ? "اختر يوم الوصول لإقامة 10 ساعات" : !range?.from || editing === "arrival" ? "اختر يوم الوصول" : editing === "departure" || !complete ? "اختر يوم المغادرة" : `مدة الإقامة · ${nightCountLabel(price?.nights ?? 0)}`}</p>
+   {offer?.shortStay ? <Calendar {...sharedCalendar} mode="single" selected={range?.from} disabled={d=>dateKey(d)<dateKey(today())||!isOfferDay(d)} onSelect={(_selected, day)=>selectDay(day)}/> :
+    <Calendar {...sharedCalendar} mode="range" min={1} selected={range}
+     onSelect={(value, day) => { if (cabinId) selectDay(day); else setRange(value); }}
+     disabled={d => dateKey(d) < dateKey(today()) || (editing === "departure" && !!range?.from && dateKey(d) <= dateKey(range.from))}/>}
    {offer && <p className="calendar-caption">{offer.shortStay ? "لا يشمل العرض الخميس والجمعة أو الإجازات." : "ليالي الخميس والجمعة خارج العرض. يمكن المغادرة يوم الخميس بعد إقامة الأربعاء."}</p>}
    {offer?.shortStay && <label className="offer-extension">تمديد الإقامة <span>40 ر.س لكل ساعة · حسب التوفر</span><select value={extraHours} onChange={event=>setExtraHours(normalizeExtensionHours(Number(event.target.value)))}>{Array.from({length:9},(_,hours)=><option key={hours} value={hours}>{hours===0?"بدون تمديد — الخروج 2 ليلًا":`+ ${number(hours)} ${hours===1?"ساعة":"ساعات"} — ${offerCheckoutLabel(offer,hours)} (+${number(hours*40)} ر.س)`}</option>)}</select></label>}
    {offerIssue && <p className="offer-date-issue" role="status">{offerIssue}</p>}
    {cabinId && days.connection === "connected" ? <><div className="calendar-legend"><span><i className="available-dot"/>ليلة متاحة</span><span><i className="unavailable-dot"/>ليلة محجوزة</span><span><i/>غير مؤكد</span></div><p className="calendar-caption">قد يكون يوم المغادرة محجوزا لضيف آخر. نتحقق من كامل مدة إقامتك بعد اختيارها.</p></> : null}
    {complete && !offerIssue && <p className={"range-status " + (blocked ? "unavailable" : status === "available" ? "available" : "")} role="status">{!result ? "جار التحقق من مدة الإقامة…" : blocked ? "الكوخ غير متاح لكامل هذه المدة. اختر موعدا آخر." : status === "available" ? "الكوخ متاح لكامل مدة إقامتك" : result.connection === "error" ? "تعذر التحقق من الموعد. حاول اختيار الموعد مرة أخرى." : "تم اختيار موعد الإقامة"}</p>}
-   {range?.from && <button className="text-button" onClick={()=>setRange(undefined)}>مسح الاختيار</button>}
+   {range?.from && <button className="text-button" onClick={()=>{setRange(undefined);setEditing(null);}}>مسح الاختيار</button>}
   </div>
   {cabinId ? <div className="calendar-price-footer"><div><span>{offer ? offer.title : price && rate !== null ? `${number(rate)} ر.س × ${nightCountLabel(price.nights)}` : cabinId ? "للّيلة الواحدة" : "يبدأ من · لليلة الواحدة"}</span><small>{price?.savings ? `وفّرت ${number(price.savings)} ر.س · قبل الإضافات` : offerIssue ? "الموعد خارج العرض" : offer ? "اختر موعدًا مشمولًا بالعرض" : "قبل الإضافات الاختيارية"}</small></div><ResortPriceAction cabinId={cabinId} price={price} offerPreview={!price && offer && rate !== null ? {amount:Math.round(rate*(1-offer.discount/100))+(offer.shortStay?extraHours*40:0),label:offer.shortStay?"سعر 10 ساعات":"سعر الليلة بالعرض"} : undefined}/></div> : <p className="price-caption">تختلف الأسعار حسب الكوخ. اختر موعدك لعرض سعر كل إقامة.</p>}
-  <button className="primary" disabled={!complete || !result || blocked || !!offerIssue || result.connection === "error"} onClick={()=>onConfirm(arrival,departure,offer?.id??null,offer?.shortStay?extraHours:0)}><CalendarDays size={18}/>{cabinId ? "تأكيد الموعد والمتابعة" : "عرض الأكواخ لهذا الموعد"}</button>
- </SheetContent></Sheet>;
+  <button className="primary" disabled={!!editing || !complete || !result || blocked || !!offerIssue || result.connection === "error"} onClick={()=>onConfirm(arrival,departure,offer?.id??null,offer?.shortStay?extraHours:0)}><CalendarDays size={18}/>{confirmLabel ?? "عرض الأكواخ لهذا الموعد"}</button>
+ </>;
+ if (cabinId) return <section className="cabin-date-step" aria-label={title}>
+  <h2>{title}</h2>
+  {content}
+ </section>;
+ return <Sheet open={open} onOpenChange={value => { if (!value) onClose?.(); }}>
+  <SheetContent side="bottom" className="date-sheet resort-date-sheet" showCloseButton={false} dir="rtl">
+   <div className="sheet-handle"/>
+   <SheetClose asChild><button className="sheet-close icon-button" aria-label="إغلاق التقويم"><X size={23}/></button></SheetClose>
+   <SheetTitle>{title}</SheetTitle><SheetDescription>المنتجع · خليج سلمان</SheetDescription>
+   {content}
+  </SheetContent>
+ </Sheet>;
 }

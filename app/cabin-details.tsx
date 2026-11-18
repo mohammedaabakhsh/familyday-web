@@ -39,7 +39,7 @@ export default function CabinDetails({ cabin, onPolicy, onBrowseServices, checko
     {isResort && <p className="description">{cabin.description}</p>}
     {cabin.combinedNote && <aside className="cabin-combined-note"><strong>حجز الكوخين معا</strong><p>{cabin.combinedNote}</p></aside>}
     <Accordion type="multiple" defaultValue={isResort ? ["indoor"] : []} className="detail-accordion">
-      <AccordionItem value="indoor"><AccordionTrigger><span><Home size={21} />المنطقة الداخلية</span></AccordionTrigger>
+      <AccordionItem value="indoor"><AccordionTrigger><span><Home size={21} />{isResort ? "داخل الكوخ" : "المنطقة الداخلية"}</span></AccordionTrigger>
         <AccordionContent><FeatureList items={cabin.indoor} /></AccordionContent></AccordionItem>
       <AccordionItem value="outdoor"><AccordionTrigger><span><Armchair size={21} />المنطقة الخارجية والمسبح</span></AccordionTrigger>
         <AccordionContent><FeatureList items={outside} />{cabin.outdoorNotes?.map(note => <p className="detail-note" key={note}><ShieldCheck size={17} />{note}</p>)}</AccordionContent></AccordionItem>

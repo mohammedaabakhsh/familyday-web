@@ -17,6 +17,8 @@ import ResortAddons from "./resort-addons";
 import VenueLocations, { VenueMapLink } from "./venue-locations";
 import "./visitor-guide.css";
 import ResortDates from "./resort-dates";
+import ResortBookingSteps from "./resort-booking-steps";
+import { isBookingStep, readRoute, routeHash, type DateField, type DateReturn, type ResortStep, type Route, type Screen } from "./booking-navigation";
 import ResortOfferCards from "./resort-offer-cards";
 import { getResortOffer, type ResortOfferId } from "./resort-offers";
 import { getResortPrice } from "./resort-pricing";
@@ -29,8 +31,6 @@ import { loadAvailability, type AvailabilityResult, getStayAvailability } from "
 const ServiceDirectory = lazy(() => import("./service-directory"));
 
 type Cabin = typeof cabinData[number];
-type Screen = "availability" | "home" | "cabin" | "addons" | "review" | "favorites" | "offers" | "bookings" | "account" | "services" | "locations";
-type Route = { screen: Screen; id?: string };
 const NAV = [{ id: "home", label: "الرئيسية", icon: Home }, { id: "locations", label: "المواقع", icon: MapPin }, { id: "offers", label: "العروض", icon: Tag }, { id: "services", label: "الخدمات", icon: ConciergeBell }, { id: "account", label: "حسابي", icon: UserRound }] as const;
 // Owner-approved temporary destination imagery for visual review only.
 const DESTINATION_PREVIEW_IMAGES: Record<string, string> = { "resort-obhur": "/assets/palm_1.webp", chalet: "/assets/royal_1.webp" };
@@ -71,7 +71,7 @@ export default function Experience() {
  const [extras, setExtras] = useState<AddonSelection>(EMPTY_ADDONS);
  const { ids: addons, quantities: addonQuantities } = extras;
  const [gallery, setGallery] = useState(0);
- const [resortDates, setResortDates] = useState<{ cabinId?: string; next: Route | null; offerId?: ResortOfferId | null; extensionHours?: number } | null>(null);
+ const [searchDatesOpen, setSearchDatesOpen] = useState(false);
  const [sheet, setSheet] = useState<"dates" | "availability" | null>(null);
  const [draftRange, setDraftRange] = useState<DateRange>();
  const [month, setMonth] = useState(new Date());
@@ -97,41 +97,74 @@ export default function Experience() {
  const priceContext = {cabinId:selectedKey,offerId:selectedOffer?.id,extensionHours:resortExtensionHours};
  const resortBasePrice = getResortPrice(from,to,[],{},priceContext);
  const resortTotalPrice = getResortPrice(from,to,selectedServices,addonQuantities,priceContext);
- const availabilityCabinId = ["cabin","addons","review"].includes(route.screen) && selectedOffer ? selectedKey : undefined;
+ const canSkipDate = hasDates && !resortBasePrice?.offerIssue && getStayAvailability(selectedKey, availability) !== "unavailable";
+ const availabilityCabinId = isBookingStep(route.screen) && selectedOffer ? selectedKey : undefined;
  const availabilityDepartureTime = resortBasePrice?.offer?.shortStay ? `${String(2+resortBasePrice.extensionHours).padStart(2,"0")}:00` : "12:00";
- const activeTab = ["availability", "cabin", "addons", "review"].includes(route.screen) ? "home" : ["favorites", "bookings"].includes(route.screen) ? "account" : route.screen;
- const title = ({ availability: "استعراض الوجهات", home: "يوم العائلة", cabin: selectedName, addons: "إضافات الإقامة", review: "مراجعة الحجز", favorites: "المفضلة", offers: "العروض", bookings: "حجوزاتي", account: "حسابي", services: "الخدمات", locations: "المواقع" })[route.screen];
- const navigate = useCallback((screen: Screen, id?: string) => { window.location.hash = screen + (id ? "/" + id : ""); setRoute({ screen, id }); window.scrollTo({ top: 0, behavior: "instant" }); }, []);
+ const activeTab = (route.screen === "availability" || isBookingStep(route.screen)) ? "home" : ["favorites", "bookings"].includes(route.screen) ? "account" : route.screen;
+ const title = ({ availability: "استعراض الوجهات", home: "يوم العائلة", cabin: selectedName, dates: "موعد الإقامة", addons: "إضافات الإقامة", review: "مراجعة الحجز", favorites: "المفضلة", offers: "العروض", bookings: "حجوزاتي", account: "حسابي", services: "الخدمات", locations: "المواقع" })[route.screen];
+ const syncLocation = useCallback(() => {
+  const nextRoute = readRoute(window.location.hash, window.history.state?.familyDayField);
+  const { screen, id } = nextRoute;
+  if (screen === "home") {
+   const place = id ? getProperty(id) : undefined;
+   setProperty(place && !place.disabled ? place.id : "resort");
+   setRoomFilter("all"); setSectionFilter("all");
+  }
+  if (isBookingStep(screen)) {
+   if (!id || !validSelection(id)) {
+    window.history.replaceState(null, "", routeHash("home", "resort"));
+    setProperty("resort"); setRoute({ screen: "home", id: "resort" }); return;
+   }
+   if (selectedKeyRef.current !== id) setExtras(EMPTY_ADDONS);
+   selectedKeyRef.current = id;
+   setSelectedKey(id); setProperty(selectionProperty(id)); setGallery(0);
+  }
+  setRoute(nextRoute);
+  window.scrollTo({ top: 0, behavior: "instant" });
+ }, []);
+ const navigate = useCallback((screen: Screen, id?: string, options: { resume?: DateReturn; field?: DateField; replace?: boolean } = {}) => {
+  const hash = routeHash(screen, id, options.resume);
+  if (hash !== window.location.hash) {
+   const history = window.history;
+   if (options.replace) {
+    history.replaceState({ ...history.state, familyDayField: options.field }, "", hash);
+   } else {
+    history.pushState({ familyDayPrevious: window.location.hash, familyDayField: options.field }, "", hash);
+   }
+  }
+  syncLocation();
+ }, [syncLocation]);
+
+ // Use an existing booking entry when going back, including the browser's Back gesture.
+ function returnTo(screen: Screen, id?: string) {
+  if (window.history.state?.familyDayPrevious === routeHash(screen, id)) window.history.back();
+  else navigate(screen, id, { replace: true });
+ }
 
  useEffect(() => {
   try { const stored = JSON.parse(localStorage.getItem("familyday-favorites") ?? "[]"); if (Array.isArray(stored)) setFavorites(stored.filter(v => typeof v === "string" && validSelection(v))); localStorage.removeItem("familyday-experience-v1"); } catch { /* Device-local favorites are optional. */ }
   try {
    const draft=readBookingDraft(localStorage.getItem(DRAFT_KEY),iso(todayInJeddah()));
    if(draft){
-    const [screen,id]=location.hash.slice(1).split("/");
-    const differentCabin=["cabin","addons","review"].includes(screen)&&id&&id!==draft.selectedKey;
+    const { screen, id } = readRoute(location.hash);
+    const differentCabin = isBookingStep(screen) && id && id !== draft.selectedKey;
     setFrom(draft.from);setTo(draft.to);
     if(!differentCabin){selectedKeyRef.current=draft.selectedKey;setSelectedKey(draft.selectedKey);setExtras({ ids: draft.addons, quantities: draft.addonQuantities });setOfferCabinId(draft.offerCabinId);setResortOfferId(draft.resortOfferId);setResortExtensionHours(draft.resortExtensionHours);}
    }else localStorage.removeItem(DRAFT_KEY);
   }catch{/* Storage is optional. */}
-  const sync = () => {
-   const [raw, id] = location.hash.slice(1).split("/");
-   const screen = (NAV.some(x => x.id === raw) || ["availability", "cabin", "addons", "review", "favorites", "bookings"].includes(raw) ? raw : "home") as Screen;
-   if (screen === "home") { const next = getProperty(id)?.disabled ? "resort" : getProperty(id)?.id ?? "resort"; setProperty(next); setRoomFilter("all"); setSectionFilter("all"); }
-   if (["cabin", "addons", "review"].includes(screen)) {
-    if (!id || !validSelection(id)) { setRoute({ screen: "home", id: "resort" }); return; }
-    if (selectedKeyRef.current !== id) setExtras(EMPTY_ADDONS);
-    selectedKeyRef.current = id; setSelectedKey(id); setProperty(selectionProperty(id)); setGallery(0);
-   }
-   setRoute({ screen, id }); window.scrollTo(0, 0);
-  };
-  sync(); setReady(true); window.addEventListener("hashchange", sync); return () => window.removeEventListener("hashchange", sync);
- }, []);
+  syncLocation();
+  setReady(true);
+  window.addEventListener("hashchange", syncLocation);
+  return () => window.removeEventListener("hashchange", syncLocation);
+ }, [syncLocation]);
  useEffect(() => {
-  if (ready && route.screen === "addons" && !hasAddonStep) navigate("cabin", selectedKey);
-  const needsDate = selectedPlace.id === "resort" && (!hasDates || !!resortBasePrice?.offerIssue);
-  if (ready && needsDate && (route.screen === "addons" || route.screen === "review")) navigate("cabin", selectedKey);
- }, [ready, selectedPlace.id, hasDates, route.screen, selectedKey, navigate, resortBasePrice?.offerIssue, hasAddonStep]);
+  if (!ready) return;
+  if ((route.screen === "dates" && selectedPlace.id !== "resort") || (route.screen === "addons" && !hasAddonStep)) {
+   navigate("cabin", selectedKey, { replace: true });
+  } else if (selectedPlace.id === "resort" && !canSkipDate && (route.screen === "addons" || route.screen === "review")) {
+   navigate("dates", selectedKey, { replace: true });
+  }
+ }, [ready, route.screen, selectedPlace.id, hasAddonStep, canSkipDate, selectedKey, navigate]);
  useEffect(() => { if (ready) try { localStorage.setItem("familyday-favorites", JSON.stringify(favorites)); } catch { /* Storage is optional. */ } }, [favorites, ready]);
  useEffect(()=>{
   if(!ready)return;
@@ -151,14 +184,52 @@ export default function Experience() {
  function openSelection(key: string) { if (key !== selectedKey) setExtras(EMPTY_ADDONS); selectedKeyRef.current = key; setSelectedKey(key); setProperty(selectionProperty(key)); setGallery(0); navigate("cabin", key); }
  function chooseProperty(id: string) { if (getProperty(id)?.disabled) return; setProperty(id); setRoomFilter("all"); setSectionFilter("all"); navigate("home", id); }
  function toggleFavorite(key: string) { setFavorites(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]); }
- function openDates(next: Route | null = null, all = false) {
-  const inCabin = ["cabin", "addons", "review"].includes(route.screen);
-  if (!all && (inCabin ? selectedPlace.id === "resort" : property === "resort")) {
-   setResortDates({ cabinId: inCabin ? selectedKey : undefined, next, offerId:inCabin ? selectedOffer?.id ?? null : null, extensionHours:inCabin && selectedKey === offerCabinId ? resortExtensionHours : 0 }); return;
-  } setDraftRange(hasDates ? { from: parse(from), to: parse(to) } : undefined); setMonth(hasDates ? parse(from) : todayInJeddah()); setDateNext(next); setCalendarProperty(all && route.screen === "availability" ? route.id ?? "all" : "all"); setSheet(all ? "availability" : "dates"); }
+ function openDates(next: Route | null = null, all = false, field?: DateField) {
+  if (!all && isBookingStep(route.screen) && selectedPlace.id === "resort") {
+   const resume = route.screen === "review" || next?.screen === "review" ? "review" : route.screen === "cabin" && !next ? "cabin" : undefined;
+   navigate("dates", selectedKey, { resume, field });
+   return;
+  }
+  if (!all && !isBookingStep(route.screen) && property === "resort") {
+   setSearchDatesOpen(true);
+   return;
+  }
+  setDraftRange(hasDates ? { from: parse(from), to: parse(to) } : undefined);
+  setMonth(hasDates ? parse(from) : todayInJeddah());
+  setDateNext(next);
+  setCalendarProperty(all && route.screen === "availability" ? route.id ?? "all" : "all");
+  setSheet(all ? "availability" : "dates");
+ }
  function applyDates() { if (!draftRange?.from || !draftRange.to || draftRange.to <= draftRange.from) return; setFrom(iso(draftRange.from)); setTo(iso(draftRange.to)); setSheet(null); if (sheet === "availability") { setRoomFilter("all"); setSectionFilter("all"); navigate("availability", calendarProperty); } else if (dateNext) navigate(dateNext.screen, dateNext.id); setDateNext(null); }
- function chooseStay() { if (selectedPlace.id === "resort" && (!hasDates || !!resortBasePrice?.offerIssue || getStayAvailability(selectedKey, availability) === "unavailable")) { openDates({ screen: "addons", id: selectedKey }); return; } navigate(hasAddonStep ? "addons" : "review", selectedKey); }
- function review() { if (hasDates && !resortBasePrice?.offerIssue && (selectedPlace.id !== "resort" || getStayAvailability(selectedKey,availability) !== "unavailable")) navigate("review", selectedKey); else openDates({ screen: "review", id: selectedKey }); }
+ function chooseStay() {
+  if (selectedPlace.id === "resort") {
+   if (!canSkipDate) {
+    navigate("dates", selectedKey);
+    return;
+   }
+   // A date chosen on Home is already complete. Keep it one Back gesture away.
+   const previous = window.location.hash;
+   if (previous === routeHash("cabin", selectedKey)) {
+    window.history.pushState({ familyDayPrevious: previous }, "", routeHash("dates", selectedKey));
+   }
+  }
+  navigate(hasAddonStep ? "addons" : "review", selectedKey);
+ }
+ function review() {
+  if (hasDates && (selectedPlace.id !== "resort" || canSkipDate)) navigate("review", selectedKey);
+  else openDates({ screen: "review", id: selectedKey });
+ }
+ function confirmCabinDates(arrival: string, departure: string, offer: ResortOfferId | null, extension: number) {
+  setFrom(arrival); setTo(departure);
+  setOfferCabinId(selectedKey); setResortOfferId(offer); setResortExtensionHours(extension);
+  if (route.resume) returnTo(route.resume, selectedKey);
+  else navigate("addons", selectedKey);
+ }
+ function selectResortStep(step: ResortStep) {
+  if (step === "dates") navigate("dates", selectedKey, { resume: route.screen === "review" ? "review" : undefined });
+  else if (route.screen === "cabin" && step === "addons") chooseStay();
+  else navigate(step, selectedKey);
+ }
  function toggleAddon(id: string) {
   const item = allowed.find(addon => addon.id === id);
   if (item) setExtras(previous => changeAddon(previous, item, previous.ids.includes(id) ? 0 : 1));
@@ -171,18 +242,31 @@ export default function Experience() {
   if ((route.screen === "services" || route.screen === "locations") && directoryReturn.current) {
    const previous = directoryReturn.current;
    directoryReturn.current = null;
-   navigate(previous.screen, previous.id);
+   navigate(previous.screen, previous.id, { resume: previous.resume, field: previous.field });
    return;
   }
-  if (route.screen === "addons") navigate("cabin", selectedKey); else if (route.screen === "review") navigate(hasAddonStep ? "addons" : "cabin", selectedKey); else if (route.screen === "favorites" || route.screen === "bookings") navigate("account"); else navigate("home", property); }
+  if (route.screen === "dates") {
+   returnTo(route.resume === "review" && canSkipDate ? "review" : "cabin", selectedKey);
+   return;
+  }
+  if (route.screen === "addons") returnTo(selectedPlace.id === "resort" ? "dates" : "cabin", selectedKey);
+  else if (route.screen === "review") returnTo(hasAddonStep ? "addons" : "cabin", selectedKey);
+  else if (route.screen === "favorites" || route.screen === "bookings") navigate("account");
+  else navigate("home", property);
+ }
  function moveGallery(step: number) { setGallery(i => Math.max(0, Math.min(images.length - 1, i + step))); }
  const resortResults = property === "resort" && hasDates && availability.connection === "connected";
  const filtered = cabinData.filter(c => c.property === property && (!resortResults || getStayAvailability(String(c.id), availability) === "available") && (property !== "resort" || roomFilter === "all" || c.rooms === (roomFilter === "one" ? 1 : 2)) && (property !== "stay" || sectionFilter === "all" || sectionFilter === "both" || c.id === (sectionFilter === "first" ? 20 : 21))).sort((a, b) => { const order = { available: 0, unknown: 1, unavailable: 2 }; return order[getStayAvailability(String(a.id), availability)] - order[getStayAvailability(String(b.id), availability)]; });
  const resultProperty = route.id === "all" || PROPERTIES.some(p => p.id === route.id && !p.disabled) ? route.id : "all";
  const resultPlaces = PROPERTIES.filter(p => !p.disabled && (resultProperty === "all" || p.id === resultProperty));
- const dates = <div className="date-fields"><button onClick={() => openDates(null, route.screen === "availability")} aria-label="اختيار تاريخ الوصول"><CalendarDays size={21}/><span><small>{route.screen === "review" ? "الدخول · 4 عصرًا" : "الوصول"}</small><strong>{label(from)}</strong></span></button><button onClick={() => openDates(null, route.screen === "availability")} aria-label="اختيار تاريخ المغادرة"><CalendarDays size={21}/><span><small>{route.screen === "review" ? `الخروج · ${resortBasePrice?.checkoutLabel ?? "12 ظهرًا"}` : "المغادرة"}</small><strong>{label(to)}</strong></span></button></div>;
+ const dates = <div className="date-fields"><button onClick={() => openDates(null, route.screen === "availability", "arrival")} aria-label="اختيار تاريخ الوصول"><CalendarDays size={21}/><span><small>{route.screen === "review" ? "الدخول · 4 عصرًا" : "الوصول"}</small><strong>{label(from)}</strong></span></button><button onClick={() => openDates(null, route.screen === "availability", "departure")} aria-label="اختيار تاريخ المغادرة"><CalendarDays size={21}/><span><small>{route.screen === "review" ? `الخروج · ${resortBasePrice?.checkoutLabel ?? "12 ظهرًا"}` : "المغادرة"}</small><strong>{label(to)}</strong></span></button></div>;
  const summary = <section className="selection-summary">{selected ? <img src={selected.images[0]} alt=""/> : <span className="summary-placeholder"><Home/></span>}<div><small>{selectedPlace.shortName} · {selectedPlace.branch}</small><h2>{selectedName}</h2>{route.screen === "addons" && <button onClick={() => openDates()} aria-label="تعديل موعد الإقامة"><CalendarDays size={16}/>{hasDates ? `${label(from)} — ${label(to)}` : "تحديد موعد الإقامة"}</button>}</div></section>;
- const progress = (step: number) => <ol className="flow-progress" aria-label="خطوات الاختيار">{(hasAddonStep ? ["المكان والموعد", "الإضافات", "المراجعة"] : ["المكان والموعد", "المراجعة"]).map((item, i) => <li key={item} className={i <= step ? "active" : ""} aria-current={i === step ? "step" : undefined}><span>{i < step ? <Check size={14}/> : n(i + 1)}</span>{item}</li>)}</ol>;
+ function progress(step: number) {
+  if (selectedPlace.id === "resort" && isBookingStep(route.screen)) {
+   return <ResortBookingSteps current={route.screen} dateSelected={canSkipDate} onSelect={selectResortStep}/>;
+  }
+  return <ol className="flow-progress" aria-label="خطوات الاختيار">{(hasAddonStep ? ["المكان والموعد", "الإضافات", "المراجعة"] : ["المكان والموعد", "المراجعة"]).map((item, i) => <li key={item} className={i <= step ? "active" : ""} aria-current={i === step ? "step" : undefined}><span>{i < step ? <Check size={14}/> : n(i + 1)}</span>{item}</li>)}</ol>;
+ }
  const card = (c: Cabin) => { const resortBrowsePrice = getResortPrice(from,to,[],{},{cabinId:String(c.id)}); const status = hasDates ? getStayAvailability(String(c.id), availability) : "unknown"; return <article className="stay-card" key={c.id} data-unit-id={c.id}><button className="favorite-button" onClick={() => toggleFavorite(String(c.id))} aria-pressed={favorites.includes(String(c.id))} aria-label={(favorites.includes(String(c.id)) ? "إزالة من المفضلة: " : "إضافة للمفضلة: ") + c.name}><Heart size={21} fill={favorites.includes(String(c.id)) ? "currentColor" : "none"}/></button><button className="stay-open" onClick={() => openSelection(String(c.id))} aria-label={"عرض تفاصيل " + c.name}><div className="stay-image"><img src={c.images[0]} alt={c.name} loading={c.id === 1 || c.id === 20 ? "eager" : "lazy"}/>{status !== "unknown" && <span className={"availability-badge " + status}>{status === "available" ? "متاح" : "غير متاح لهذا الموعد"}</span>}</div><div className="stay-info"><div className="stay-heading"><h3>{c.name}</h3><span className="capacity"><UsersRound size={16}/>{capacity(c.capacity)}</span></div><div className="stay-features">{c.property === "resort" && <span><BedDouble size={16}/>{c.rooms === 1 ? "غرفة" : "غرفتين"}</span>}<span><Waves size={16}/>{c.id === 20 ? "مسبحين" : "مسبح خاص"}</span><span><Armchair size={16}/>مساحة خارجية</span>{c.bathSummary && <span><Bath size={16}/>{c.bathSummary}</span>}{c.id === 21 && <span><Volleyball size={16}/>ملعب طائرة</span>}</div>{c.property === "resort" && <div className="stay-price"><div><NightlyPrice cabinId={String(c.id)}/>{resortBrowsePrice && resortBrowsePrice.stayAmount !== null && <small className="card-stay-total">{n(resortBrowsePrice.stayAmount)} ر.س إجمالي الإقامة</small>}</div></div>}<span className="stay-link">{status === "unavailable" ? "التفاصيل ومواعيد أخرى" : "عرض التفاصيل والصور"}</span></div></button></article>; };
  const chaletCard = <article className="stay-card chalet-card"><button className="favorite-button" aria-label="حفظ الشاليه في المفضلة" aria-pressed={favorites.includes("chalet")} onClick={() => toggleFavorite("chalet")}><Heart size={21} fill={favorites.includes("chalet") ? "currentColor" : "none"}/></button><button className="stay-open" onClick={() => openSelection("chalet")}><div className="missing-photo"><ImageIcon size={38}/><span>صور الشاليه</span></div><div className="stay-info"><h3>الشاليه</h3><p><MapPin size={15}/>فرع المروج</p><span className="stay-link">عرض التفاصيل</span></div></button></article>;
 
@@ -200,7 +284,15 @@ export default function Experience() {
     <button type="button" className="text-button cabin-booking-dates" aria-label="تعديل موعد الإقامة" onClick={() => openDates()}>
      <CalendarDays size={14}/>{label(from)} – {label(to)}
     </button>
-   </div>) : <span>{hasDates ? `${label(from)} — ${label(to)}` : "اختر إقامتك ثم أكمل التفاصيل"}</span>}<button className="primary" onClick={chooseStay}>{selectedKey === "both" ? "اختيار القسمين" : selectedPlace.id === "stay" ? "اختيار هذا القسم" : selectedPlace.id === "chalet" ? "متابعة الاختيار" : resortBasePrice?.offerIssue ? "عدّل موعد العرض" : getStayAvailability(selectedKey, availability) === "unavailable" ? "اختر موعدا آخر" : "متابعة الحجز"}</button></div></>}
+   </div>) : <span>{hasDates ? `${label(from)} — ${label(to)}` : "اختر إقامتك ثم أكمل التفاصيل"}</span>}<button className="primary" onClick={chooseStay}>{selectedKey === "both" ? "اختيار القسمين" : selectedPlace.id === "stay" ? "اختيار هذا القسم" : selectedPlace.id === "chalet" ? "متابعة الاختيار" : resortBasePrice?.offerIssue ? "عدّل موعد العرض" : getStayAvailability(selectedKey, availability) === "unavailable" ? "اختر موعدا آخر" : canSkipDate ? "متابعة للإضافات" : "اختيار الموعد"}</button></div></>}
+
+ {route.screen === "dates" && selectedPlace.id === "resort" && <>
+  {progress(1)}
+  <ResortDates key={selectedKey} open cabinId={selectedKey} cabinName={selectedName} from={from} to={to}
+   offerId={selectedOffer?.id} extensionHours={resortExtensionHours} initialField={route.field}
+   confirmLabel={route.resume === "review" ? "حفظ الموعد والعودة للمراجعة" : route.resume === "cabin" ? "حفظ الموعد" : "المتابعة للإضافات"}
+   onConfirm={confirmCabinDates}/>
+ </>}
 
  {route.screen === "addons" && <>
   {progress(1)}{summary}
@@ -242,7 +334,10 @@ export default function Experience() {
   else navigate(item.id, item.id === "home" ? property : undefined);
  }}><item.icon size={24} fill={item.id === "home" && activeTab === "home" ? "currentColor" : "none"}/><span>{item.label}</span></button>)}</nav>
 
- <ResortDates open={!!resortDates} cabinId={resortDates?.cabinId} cabinName={resortDates?.cabinId ? selectionName(resortDates.cabinId) : undefined} from={from} to={to} offerId={resortDates?.offerId} extensionHours={resortDates?.extensionHours} onClose={() => setResortDates(null)} onConfirm={(arrival, departure, offerId, extensionHours) => { setFrom(arrival); setTo(departure); if (resortDates?.cabinId) { setOfferCabinId(resortDates.cabinId); setResortOfferId(offerId); setResortExtensionHours(extensionHours); } const next = resortDates?.next; setResortDates(null); if (next) navigate(next.screen, next.id); else if (route.screen === "home") requestAnimationFrame(() => document.getElementById("resort-cabins")?.scrollIntoView({behavior:"smooth",block:"start"})); }}/>
+ <ResortDates open={searchDatesOpen} from={from} to={to} onClose={() => setSearchDatesOpen(false)} onConfirm={(arrival, departure) => {
+  setFrom(arrival); setTo(departure); setSearchDatesOpen(false);
+  requestAnimationFrame(() => document.getElementById("resort-cabins")?.scrollIntoView({behavior:"smooth",block:"start"}));
+ }}/>
  <Sheet open={!!sheet} onOpenChange={open => { if (!open) { setSheet(null); setDateNext(null); } }}><SheetContent side="bottom" className="date-sheet" showCloseButton={false} dir="rtl"><div className="sheet-handle"/><SheetClose asChild><button className="sheet-close icon-button" aria-label="إغلاق التقويم"><X size={23}/></button></SheetClose><SheetTitle>{sheet === "availability" ? "المواعيد المتاحة" : "حدد موعد إقامتك"}</SheetTitle><SheetDescription>{sheet === "availability" ? "استعرض المواعيد عبر كل وجهات يوم العائلة" : `${current.shortName} · ${current.branch}`}</SheetDescription><div className="sheet-scroll">{sheet === "availability" && <RadioGroup dir="rtl" className="calendar-places" value={calendarProperty} onValueChange={setCalendarProperty}>{[{ id: "all", name: "كل الوجهات" }, ...PROPERTIES.filter(p => !p.disabled).map(p => ({ id: p.id, name: p.shortName }))].map(p => <label key={p.id} className={calendarProperty === p.id ? "active" : ""}><RadioGroupItem value={p.id}/>{p.name}</label>)}</RadioGroup>}<div className="sheet-date-labels"><span>الوصول<strong>{draftRange?.from ? label(iso(draftRange.from)) : "اختر اليوم"}</strong></span><span>المغادرة<strong>{draftRange?.to ? label(iso(draftRange.to)) : "اختر اليوم"}</strong></span></div><Calendar dir="rtl" mode="range" min={1} selected={draftRange} onSelect={setDraftRange} month={month} onMonthChange={setMonth} locale={arSA} numerals="latn" disabled={{ before: todayInJeddah() }} formatters={{ formatDay: d => n(d.getDate()), formatCaption: d => d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { month: "long", year: "numeric" }) }} labels={{ labelNext: () => "الشهر التالي", labelPrevious: () => "الشهر السابق", labelNav: () => "التنقل بين الأشهر" }} className="fd-calendar"/>{sheet === "availability" && <><div className="calendar-inventory" aria-live="polite">{PROPERTIES.filter(p => !p.disabled && (calendarProperty === "all" || p.id === calendarProperty)).flatMap(p => (p.id === "chalet" ? [{id:"chalet",name:"الشاليه"}] : cabinData.filter(c => c.property === p.id)).map(c => <div key={c.id}><strong>{c.name}<small>{p.shortName} · {p.branch}</small></strong></div>))}</div></>}</div><button className="primary" disabled={!draftRange?.from || !draftRange.to || draftRange.to <= draftRange.from} onClick={applyDates}>{sheet === "availability" ? "عرض النتائج" : "تأكيد التواريخ"}</button></SheetContent></Sheet>
  <Dialog open={!!dialog} onOpenChange={open => { if (!open) setDialog(null); }}><DialogContent className={"fd-dialog " + (dialog === "photo" ? "photo-dialog" : "")} showCloseButton={false} dir="rtl"><DialogClose asChild><button className="dialog-close icon-button" aria-label="إغلاق"><X size={23}/></button></DialogClose><DialogTitle>{dialog === "photo" ? selectedName : dialog === "policy" ? "معلومات الإقامة" : dialog === "login" ? "تسجيل الدخول" : "المساعدة والتواصل"}</DialogTitle><DialogDescription className={dialog === "photo" ? "sr-only" : ""}>{dialog === "photo" ? "صور الإقامة" : dialog === "login" ? "تصفح إقاماتك المفضلة وخطط لزيارتك القادمة." : dialog === "policy" ? "مواعيد الوصول والمغادرة" : `${current.name} · ${current.location}`}</DialogDescription>{dialog === "photo" && <><img className="full-photo" src={images[gallery]} alt={selectedName}/><div className="photo-controls"><button className="icon-button" disabled={gallery === 0} onClick={() => moveGallery(-1)} aria-label="الصورة السابقة"><ChevronRight/></button><span>{n(gallery + 1)} / {n(images.length)}</span><button className="icon-button" disabled={gallery === images.length - 1} onClick={() => moveGallery(1)} aria-label="الصورة التالية"><ChevronLeft/></button></div></>}{dialog === "policy" && <div className="policy-content"><p><Clock3/>الدخول 4 مساء · الخروج 12 ظهرا</p><p><Waves/>{current.id === "resort" ? "يسمح للأطفال باستخدام مسابح الأكواخ تحت إشراف ذويهم طوال الوقت" : "مسابح الكبار غير مخصصة للأطفال"}</p><p><ShieldCheck/>خصوصيتكم راحتنا</p></div>}{dialog === "help" && <div className="help-content"><MapPin size={32}/>{current.mapUrl ? <a className="primary" href={current.mapUrl} target="_blank" rel="noopener noreferrer">فتح الموقع في الخرائط</a> : <p>{current.name}</p>}<button className="secondary" onClick={() => setDialog("policy")}>معلومات الإقامة</button></div>}</DialogContent></Dialog>
  </div>;

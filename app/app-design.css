@@ -606,6 +606,47 @@ small {
   border-color: var(--primary);
   color: white;
 }
+.resort-booking-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 32rem;
+  margin: 0 auto 14px;
+  padding: 0;
+  list-style: none;
+  color: #6b7881;
+  font-size: .85rem;
+}
+.resort-booking-steps li { min-width: 0; }
+.resort-booking-steps :is(button,.step-static) {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  width: 100%; min-height: 44px; white-space: nowrap;
+}
+.resort-booking-steps button { border-radius: 8px; }
+.resort-booking-steps button:hover { background: var(--secondary); }
+.resort-booking-steps .step-number {
+  display: grid; place-items: center; width: 21px; height: 21px;
+  border: 1px solid #d2dbe0; border-radius: 50%; font-size: .75rem;
+}
+.resort-booking-steps .current { color: var(--primary); font-weight: 750; }
+.resort-booking-steps .current .step-number { color: white; border-color: var(--primary); background: var(--primary); }
+.resort-booking-steps .complete { color: var(--brand-text); }
+.resort-booking-steps .complete .step-number { border-color: currentColor; }
+@media (max-width: 410px) {
+  .resort-booking-steps { font-size: .75rem; margin-bottom: 8px; }
+  .resort-booking-steps :is(button,.step-static) { gap: 3px; }
+  .resort-booking-steps .step-number { width: 17px; height: 17px; font-size: .67rem; }
+  .resort-booking-steps .step-check { width: 10px; }
+}
+.view-dates { max-width: 568px; margin-inline: auto; }
+.cabin-date-step h2 { font-size: 1.3rem; margin: 0 0 18px; }
+.cabin-date-step .calendar-price-footer { padding-block: 12px; }
+.cabin-date-fields button { min-width: 0; padding: 9px 12px; text-align: start; color: var(--muted-foreground); font-size: .86rem; }
+.cabin-date-fields button + button { border-inline-start: 1px solid var(--border); }
+.cabin-date-fields button[aria-pressed="true"] { background: var(--secondary); box-shadow: inset 0 -2px var(--brand-text); }
+.cabin-date-fields button:disabled { cursor: default; }
+.cabin-date-fields { overflow: hidden; }
+.cabin-date-fields button:focus-visible { outline-offset: -3px; }
+.cabin-date-step > .primary { margin-block: 8px; }
 .hero-gallery {
   position: relative;
   border-radius: 20px;
