@@ -1,10 +1,34 @@
-// Owner-supplied extra prices; missing prices remain unconfirmed. Live availability requires the booking API.
-export type BookingAddon = { id: string; property: "resort" | "stay"; group: "hospitality" | "decor" | "water" | "seating" | "fun" | "essentials" | "dining"; price?: number; capacity?: number; image?: string; requiresGroup?: string; variantGroup?: string; variantLabel?: string; included?: string[]; quantity?: boolean; title: string; description: string; details: string[] };
+import serviceCatalog from "./resort-service-catalog.json";
+
+export type BookingAddon = {
+  id: string;
+  property: "resort" | "stay";
+  group: "hospitality" | "decor" | "water" | "seating" | "fun" | "essentials" | "dining";
+  title: string;
+  price?: number;
+  description?: string;
+  details: string[];
+  note?: string;
+  photos?: string[];
+  image?: string;
+  capacity?: number;
+  requiresGroup?: string;
+  variantGroup?: string;
+  variantLabel?: string;
+  included?: Partial<Record<string, number>>;
+  quantity?: boolean;
+};
+
 export const BOOKING_ADDONS: BookingAddon[] = [
- { id: "hospitality", included: ["incense"], property: "resort", group: "hospitality", title: "الضيافة السعودية", description: "قهوة وشاي وضيافة خفيفة", details: ["تبخير الكوخ بالعود", "دلة قهوة مع التمر", "دلة شاي مع البسكويت", "فشار لشخصين"] },
- { id: "hospitality-family", included: ["games-box"], property: "resort", group: "hospitality", title: "الضيافة العائلية", description: "وجبات وضيافة وألعاب لإقامتك", details: ["أربع وجبات برجر مع بطاطس ومشروبات غازية", "موهيتو وفشار لشخصين", "قهوة مع التمر أو شاي مع البسكويت", "صندوق ألعاب جماعية وثلاث ألعاب مائية للاستخدام أثناء الإقامة"] },
- { id: "hospitality-complete", included: ["games-box", "incense"], property: "resort", group: "hospitality", title: "الضيافة المتكاملة", description: "ضيافة متنوعة وتجهيزات للإقامة", details: ["وجبتان: برجر وبطاطس ومشروب غازي لكل وجبة", "قهوة مع التمر وشاي مع البسكويت", "قهوة سوداء وموهيتو وفشار لشخصين", "تبخير الكوخ بالعود وثلاجة ضيافة", "صندوق ألعاب جماعية وثلاث ألعاب مائية للاستخدام أثناء الإقامة"] },
- { id: "decor", property: "resort", group: "decor", title: "تنسيق المناسبة", description: "تنسيق ورد لإقامتك", details: ["إضافة اختيارية إلى الكوخ المختار", "يمكن اختيار التنسيق مع باقة الضيافة"] },
+  ...serviceCatalog.hospitality.map((pack): BookingAddon => ({
+    ...pack, property: "resort", group: "hospitality", quantity: true,
+  })),
+  ...serviceCatalog.decor.map((pack): BookingAddon => ({
+    ...pack, property: "resort", group: "decor", variantGroup: "coordination",
+  })),
+  ...serviceCatalog.essentials.map((item): BookingAddon => ({
+    ...item, property: "resort", group: "essentials", quantity: true,
+  })),
  { id: "water-game", property: "stay", group: "water", title: "لعبة مائية", description: "إضافة لعبة مائية إلى القسم المختار", details: [] },
  {"id": "romantic", "property": "resort", "group": "seating", "title": "جلسة بإطار مثلث · شخصان", "price": 300, "description": "طاولة وكرسيان، مع شموع وورود.", "details": [], "capacity": 2, "image": "/assets/jalsat_1.webp", "variantGroup": "outdoor"},
  {"id": "floor-table", "property": "resort", "group": "seating", "title": "جلسة أرضية · 4 أشخاص", "price": 200, "description": "طاولة أرضية، فرشة ومخدات، مع شموع وورود.", "details": [], "capacity": 4, "image": "/assets/jalsat_3.webp", "variantGroup": "outdoor"},
@@ -16,11 +40,6 @@ export const BOOKING_ADDONS: BookingAddon[] = [
  {"id": "cinema-late", "property": "resort", "group": "fun", "title": "سينما · 11 مساء–2 صباحا", "price": 150, "description": "3 ساعات · شاشة عرض خارجية، كرسيان مريحان، فشار وموهيتو لشخصين", "details": [], "variantGroup": "cinema", "variantLabel": "11 مساء–2 صباحا"},
  {"id": "games-box", "property": "resort", "group": "fun", "title": "بوكس الألعاب", "price": 50, "description": "بوكس الألعاب الجماعية", "details": ["أونو", "جاكارو", "سيكونس", "شطرنج", "ضومنة", "لعبة لا تقول", "ورق بلوت"], "variantGroup": "games", "variantLabel": "بوكس فقط"},
  {"id": "games-table", "property": "resort", "group": "fun", "title": "طاولة مع بوكس الألعاب", "price": 150, "description": "طاولة + 4 كراسي + بوكس الألعاب", "details": ["أونو", "جاكارو", "سيكونس", "شطرنج", "ضومنة", "لعبة لا تقول", "ورق بلوت"], "variantGroup": "games", "variantLabel": "طاولة مع البوكس"},
- {"id": "towels", "property": "resort", "group": "essentials", "title": "روب استحمام ومنشفة", "price": 20, "description": "طقم لشخص واحد، للاستخدام أثناء الإقامة فقط", "details": [], "quantity": true},
- {"id": "bath-kit", "property": "resort", "group": "essentials", "title": "عدة حمام", "price": 15, "description": "", "details": [], "quantity": true},
- {"id": "extra-bed", "property": "resort", "group": "essentials", "title": "سرير إضافي", "price": 30, "description": "", "details": []},
- {"id": "incense", "property": "resort", "group": "essentials", "title": "تبخير الكوخ بالعود", "price": 20, "description": "", "details": []},
- {"id": "ice-box", "property": "resort", "group": "essentials", "title": "حافظة كبيرة مع الثلج", "price": 25, "description": "", "details": []},
  {"id": "bbq-beef-plain", "property": "resort", "group": "essentials", "variantGroup": "bbq", "title": "بوكس الشواء · لحم · بدون فحم", "price": 85, "description": "مناسب لـ6 أشخاص · خبز وجبن وصوصات", "details": []},
  {"id": "bbq-beef-coal", "property": "resort", "group": "essentials", "variantGroup": "bbq", "title": "بوكس الشواء · لحم · مع الفحم", "price": 120, "description": "مناسب لـ6 أشخاص · خبز وجبن وصوصات", "details": []},
  {"id": "bbq-chicken-plain", "property": "resort", "group": "essentials", "variantGroup": "bbq", "title": "بوكس الشواء · دجاج · بدون فحم", "price": 85, "description": "مناسب لـ6 أشخاص · خبز وجبن وصوصات", "details": []},

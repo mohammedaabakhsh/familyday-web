@@ -1,0 +1,300 @@
+{
+  "hospitality": [
+    {
+      "id": "saudi-hospitality",
+      "title": "الضيافة السعودية",
+      "price": 59,
+      "details": [
+        "تبخير المكان بالعود",
+        "دلة قهوة سعودية مع التمر",
+        "دلة شاهي مع البسكويت",
+        "كوبان من الفشار"
+      ],
+      "included": {
+        "incense": 1
+      }
+    },
+    {
+      "id": "relaxation-hospitality",
+      "title": "ضيافة الاسترخاء",
+      "price": 75,
+      "details": [
+        "روب ومناشف لشخصين",
+        "مجموعة مستلزمات الاستحمام",
+        "كوبان من القهوة السوداء",
+        "كوبان من الموهيتو",
+        "كوبان من الفشار",
+        "بوكس الألعاب",
+        "لعبتان مائيتان"
+      ],
+      "note": "الروب والمناشف وبوكس الألعاب والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "towels": 2,
+        "bath-kit": 1,
+        "games-box": 1
+      }
+    },
+    {
+      "id": "family-hospitality",
+      "title": "الضيافة العائلية",
+      "price": 85,
+      "details": [
+        "دلة قهوة سعودية مع التمر",
+        "دلة شاهي مع البسكويت",
+        "4 أكواب من الموهيتو",
+        "4 أكواب من الفشار",
+        "حافظة كبيرة مع الثلج",
+        "بوكس الألعاب",
+        "ألعاب مائية"
+      ],
+      "note": "بوكس الألعاب والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "ice-box": 1,
+        "games-box": 1
+      }
+    }
+  ],
+  "decor": [
+    {
+      "id": "decor-rose",
+      "title": "باقة الورد",
+      "price": 120,
+      "details": [
+        "تزيين السرير بالورد الطبيعي على شكل قلب أو حرف من اختيارك",
+        "بالونان",
+        "بطاقة إهداء تناسب مناسبتك"
+      ],
+      "photos": [
+        "/assets/coordination/rose/front-a-v4.webp",
+        "/assets/coordination/rose/wood-heart-v4.webp",
+        "/assets/coordination/rose/angle-h-v4.webp"
+      ]
+    },
+    {
+      "id": "decor-premium-rose",
+      "title": "باقة الورد المميزة",
+      "price": 350,
+      "details": [
+        "تزيين السرير بالورد الطبيعي",
+        "تنسيق الممر والحمام بالورد",
+        "قلب أو حروف بالورد في المكان الذي تختاره",
+        "بالونات",
+        "بطاقة إهداء تناسب مناسبتك",
+        "روب ومناشف لشخصين",
+        "لعبتان مائيتان"
+      ],
+      "note": "الروب والمناشف والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "towels": 2
+      },
+      "photos": [
+        "/assets/coordination/premium-rose/02-dome-v2.webp",
+        "/assets/coordination/premium-rose/01-bath-v2.webp",
+        "/assets/coordination/premium-rose/03-bed-no-candles-v2.webp",
+        "/assets/coordination/premium-rose/04-anniversary-v2.webp",
+        "/assets/coordination/premium-rose/05-birthday-v2.webp"
+      ]
+    },
+    {
+      "id": "decor-moments",
+      "title": "باقة اللحظات",
+      "price": 650,
+      "details": [
+        "تزيين السرير بالورد الطبيعي",
+        "تنسيق الممر والحمام بالورد",
+        "قلب أو حروف بالورد في المكان الذي تختاره",
+        "تزيين غرفة النوم بالبالونات",
+        "تنسيق غرفة النوم بالشموع",
+        "بالونات هيليوم",
+        "بطاقة إهداء تناسب مناسبتك",
+        "روب ومناشف لشخصين",
+        "كوبان من الموهيتو",
+        "كوبان من الفشار",
+        "بوكس الألعاب",
+        "ألعاب مائية"
+      ],
+      "note": "الروب والمناشف وبوكس الألعاب والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "towels": 2,
+        "games-box": 1
+      },
+      "photos": [
+        "/assets/coordination/moments/02-bath-no-juice-v2.webp",
+        "/assets/coordination/moments/03-candles-v2.webp",
+        "/assets/coordination/moments/01-shady-v2.webp",
+        "/assets/coordination/moments/04-pale-balloons-v2.webp",
+        "/assets/coordination/moments/05-love-v2.webp"
+      ]
+    },
+    {
+      "id": "decor-celebration",
+      "title": "باقة الاحتفال",
+      "price": 850,
+      "details": [
+        "تزيين السرير بالورد الطبيعي",
+        "تنسيق الممر والحمام بالورد",
+        "قلب أو حروف بالورد في المكان الذي تختاره",
+        "تزيين غرفة النوم بالبالونات",
+        "تنسيق غرفة النوم بالشموع",
+        "بالونات هيليوم",
+        "حرفان من بالونات الهيليوم",
+        "بطاقة إهداء تناسب مناسبتك",
+        "روب ومناشف لشخصين",
+        "كيكة",
+        "عصير عنب",
+        "كوبان من الفشار",
+        "بوكس الألعاب",
+        "ألعاب مائية"
+      ],
+      "note": "الروب والمناشف وبوكس الألعاب والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "towels": 2,
+        "games-box": 1
+      },
+      "photos": [
+        "/assets/coordination/complete/10-v3.webp",
+        "/assets/coordination/celebration/01-lounge-v1.webp",
+        "/assets/coordination/celebration/02-anniversary-v1.webp",
+        "/assets/coordination/celebration/03-bath-room-v1.webp",
+        "/assets/coordination/celebration/04-purple-v1.webp",
+        "/assets/coordination/celebration/05-soha-v1.webp"
+      ]
+    },
+    {
+      "id": "decor-vip",
+      "title": "باقة VIP",
+      "price": 1150,
+      "details": [
+        "تزيين السرير بالورد الطبيعي",
+        "تنسيق الممر والحمام بالورد",
+        "قلب أو حروف بالورد في المكان الذي تختاره",
+        "تزيين غرفة النوم بالبالونات",
+        "تنسيق غرفة النوم بالشموع",
+        "بالونات هيليوم",
+        "حرفان من بالونات الهيليوم",
+        "تنسيق الطاولة بالورد والشموع",
+        "حوامل شموع",
+        "بوكيه ورد طبيعي",
+        "بطاقة إهداء تناسب مناسبتك",
+        "تبخير المكان بالعود",
+        "روب ومناشف لشخصين",
+        "مجموعة مستلزمات الاستحمام",
+        "دلة قهوة سعودية مع التمر",
+        "دلة شاهي مع البسكويت",
+        "كيكة",
+        "عصير عنب",
+        "كوبان من الفشار",
+        "بوكس الألعاب",
+        "ألعاب مائية"
+      ],
+      "note": "الروب والمناشف وبوكس الألعاب والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "incense": 1,
+        "towels": 2,
+        "bath-kit": 1,
+        "games-box": 1
+      },
+      "photos": [
+        "/assets/coordination/vip/01-yellow-bed-v2.webp",
+        "/assets/coordination/vip/02-yellow-heart-v2.webp",
+        "/assets/coordination/vip/04-dome-celebration-v2.webp",
+        "/assets/coordination/vip/04-silver-balloons-v3.webp",
+        "/assets/coordination/vip/05-purple-bath-v2.webp",
+        "/assets/coordination/vip/06-bouquet-v2.webp"
+      ]
+    },
+    {
+      "id": "decor-complete",
+      "title": "التجربة المتكاملة",
+      "price": 1750,
+      "details": [
+        "تزيين السرير بالورد الطبيعي",
+        "تنسيق الممر والحمام بالورد",
+        "قلب أو حروف بالورد في المكان الذي تختاره",
+        "تزيين غرفة النوم بالبالونات",
+        "تنسيق غرفة النوم بالشموع",
+        "بالونات هيليوم",
+        "حرفان من بالونات الهيليوم",
+        "تنسيق الطاولة بالورد والشموع",
+        "حوامل شموع",
+        "تنسيق الممر الخارجي مع سجادة حمراء للاستقبال",
+        "صورة كبيرة مطبوعة على حامل",
+        "طباعة عبارة تخص المناسبة أو اسم الشخص",
+        "بوكيه ورد طبيعي",
+        "بطاقة إهداء تناسب مناسبتك",
+        "تبخير المكان بالعود",
+        "روب ومناشف لشخصين",
+        "مجموعة مستلزمات الاستحمام",
+        "دلة قهوة سعودية مع التمر",
+        "دلة شاهي مع البسكويت",
+        "كوبان من القهوة السوداء",
+        "كوبان من الموهيتو",
+        "كيكة",
+        "عصير عنب",
+        "كوبان من الفشار",
+        "طبق شيبس مشكّل",
+        "ميني بار يشمل مشروبات غازية وشوكولاتة",
+        "حافظة كبيرة مع الثلج",
+        "جلسة سينما",
+        "طاولة مع بوكس الألعاب",
+        "ألعاب مائية"
+      ],
+      "note": "الروب والمناشف والطاولة وبوكس الألعاب والألعاب المائية للاستخدام أثناء الإقامة",
+      "included": {
+        "incense": 1,
+        "towels": 2,
+        "bath-kit": 1,
+        "ice-box": 1,
+        "cinema-early": 1,
+        "cinema-late": 1,
+        "games-table": 1,
+        "games-box": 1
+      },
+      "photos": [
+        "/assets/coordination/complete/01-v3.webp",
+        "/assets/coordination/complete/04-v3.webp",
+        "/assets/coordination/complete/12-v3.webp",
+        "/assets/coordination/vip/03-birthday-lounge-v2.webp",
+        "/assets/coordination/complete/08-v3.webp",
+        "/assets/coordination/complete/06-v3.webp",
+        "/assets/coordination/complete/07-v3.webp",
+        "/assets/coordination/complete/05-v3.webp",
+        "/assets/coordination/complete/13-lighting-v4.webp",
+        "/assets/coordination/complete/09-v3.webp"
+      ]
+    }
+  ],
+  "essentials": [
+    {
+      "id": "towels",
+      "title": "روب ومناشف لشخص واحد",
+      "price": 20,
+      "details": [],
+      "description": "للاستخدام أثناء الإقامة"
+    },
+    {
+      "id": "incense",
+      "title": "تبخير الكوخ",
+      "price": 20,
+      "details": []
+    },
+    {
+      "id": "bath-kit",
+      "title": "مجموعة مستلزمات الاستحمام",
+      "price": 15,
+      "details": []
+    },
+    {
+      "id": "ice-box",
+      "title": "حافظة كبيرة مع الثلج",
+      "price": 25,
+      "details": []
+    },
+    {
+      "id": "floor-mattress",
+      "title": "مرتبة أرضية إضافية",
+      "price": 30,
+      "details": []
+    }
+  ]
+}

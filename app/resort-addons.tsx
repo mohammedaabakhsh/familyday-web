@@ -1,22 +1,76 @@
 "use client";
-import VariantAddon from "./variant-addon";
+
+import { Armchair, Coffee, Flower2, Gamepad2, ShoppingBasket, UtensilsCrossed } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import AddonItem from "./addon-item";
+import BarbecueAddon from "./barbecue-addon";
 import DiningAddon from "./dining-addon";
 import SeatingAddons from "./seating-addons";
-import BarbecueAddon from "./barbecue-addon";
-import { UtensilsCrossed, Coffee, Flower2, Armchair, Gamepad2, Bath, Check, Plus, Minus } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { BOOKING_ADDONS, type BookingAddon } from "./booking-addons";
-const groups = [{id:"essentials",title:"مستلزمات الإقامة",icon:Bath,hint:"كل ما يكمل راحتك"},{id:"hospitality",title:"الضيافة",icon:Coffee,hint:"ثلاث باقات لإقامتك"},{id:"fun",title:"الألعاب والسينما",icon:Gamepad2,hint:"وقت ممتع مع العائلة"},{id:"decor",title:"تنسيق المناسبة",icon:Flower2,hint:"لمسة خاصة لمناسبتك"},{id:"seating",title:"الجلسات الخارجية",icon:Armchair,hint:"اختر عدد الأشخاص ثم الجلسة المناسبة"},{id:"dining",title:"طاولات الطعام",icon:UtensilsCrossed,hint:"اختر العدد والتجهيز المناسب لك"}];
-const n=(v:number)=>new Intl.NumberFormat("ar-SA-u-nu-latn").format(v);
-export default function ResortAddons({selected,onChange,quantities,onQuantity}:{selected:string[];onChange:(v:string[])=>void;quantities:Record<string,number>;onQuantity:(id:string,n:number)=>void}){
- const included=BOOKING_ADDONS.filter(a=>selected.includes(a.id)).flatMap(a=>a.included??[]);
- function toggle(a:BookingAddon){
-  if(included.includes(a.id))return;
-  if(selected.includes(a.id)){onChange(selected.filter(id=>id!==a.id));return;}
-  const next=selected.filter(id=>{const old=BOOKING_ADDONS.find(x=>x.id===id);return !(a.group==="hospitality"&&old?.group==="hospitality")&&!(a.variantGroup&&old?.variantGroup===a.variantGroup)&&!a.included?.includes(id)});
-  onChange([...next,a.id]);onQuantity(a.id,1);
- }
- function row(a:BookingAddon){return <AddonItem key={a.id} addon={a} chosen={selected.includes(a.id)} covered={included.includes(a.id)} quantity={quantities[a.id]??1} onToggle={()=>toggle(a)} onQuantity={count=>onQuantity(a.id,count)}/>}
- return <Accordion type="multiple" className="resort-extras">{groups.map(g=>{const list=BOOKING_ADDONS.filter(a=>a.property==="resort"&&a.group===g.id), chosen=list.filter(a=>selected.includes(a.id));return <AccordionItem value={g.id} key={g.id}><AccordionTrigger className="extras-trigger"><span className="extras-heading"><g.icon size={23}/><span><strong>{g.title}</strong><small>{chosen.length?chosen.map(a=>a.title+((quantities[a.id]??1)>1?` × ${n(quantities[a.id])}`:"")).join(" · "):g.hint}</small></span></span></AccordionTrigger><AccordionContent>{g.id==="seating" ? <SeatingAddons selected={selected} onChange={onChange}/> : <>{g.id==="hospitality"&&<p className="extras-hint">اختيار باقة واحدة · يمكنك المتابعة دون ضيافة</p>}{list.filter(a=>!a.variantGroup).map(row)}{[...new Set(list.map(a=>a.variantGroup).filter(Boolean))].map(v=>{const options=list.filter(a=>a.variantGroup===v);const picked=options.find(a=>selected.includes(a.id));if(v==="dining")return <DiningAddon key={v} options={options} selectedId={picked?.id} onChoose={toggle}/>;if(v==="bbq")return <BarbecueAddon key={v} options={options} selectedId={picked?.id} onChoose={toggle}/>;return <VariantAddon key={v} options={options} selectedId={picked?.id} included={included} onChoose={toggle}/>;})}</>}</AccordionContent></AccordionItem>})}</Accordion>
+import VariantAddon from "./variant-addon";
+import { addonQuantity, changeAddon, includedUnits, normalizeAddons, type AddonSelection } from "./addon-selection";
+import { getAllowedAddons, type BookingAddon } from "./booking-addons";
+
+const groups = [
+  { id: "hospitality", title: "الضيافة", icon: Coffee, hint: "السعودية، الاسترخاء، العائلية" },
+  { id: "decor", title: "تنسيقات المناسبات", icon: Flower2, hint: "صور الباقات وتفاصيل التجهيز" },
+  { id: "essentials", title: "الطلبات الإضافية", icon: ShoppingBasket, hint: "مستلزمات الإقامة وبوكسات الشواء" },
+  { id: "fun", title: "الألعاب والسينما", icon: Gamepad2, hint: "بوكس الألعاب وجلسة السينما" },
+  { id: "seating", title: "الجلسات الخارجية", icon: Armchair, hint: "اختر الجلسة وعدد الأشخاص" },
+  { id: "dining", title: "طاولات الطعام", icon: UtensilsCrossed, hint: "عدد الضيوف وتجهيز الطاولة" },
+] as const;
+
+const catalog = getAllowedAddons("resort");
+
+export default function ResortAddons({ selection, onChange }: { selection: AddonSelection; onChange: (next: AddonSelection) => void }) {
+  const selected = catalog.filter(item => selection.ids.includes(item.id));
+  const covered = includedUnits(selected, selection.quantities);
+  const choose = (item: BookingAddon) => onChange(changeAddon(selection, item, selection.ids.includes(item.id) ? 0 : 1));
+
+  function itemRow(item: BookingAddon) {
+    const count = selection.ids.includes(item.id) ? addonQuantity(item, selection.quantities) : 0;
+    return <AddonItem key={item.id} addon={item} count={count} covered={covered[item.id] ?? 0}
+      onCount={value => onChange(changeAddon(selection, item, value))} />;
+  }
+
+  function variants(group: string, options: BookingAddon[]) {
+    const picked = options.find(item => selection.ids.includes(item.id));
+    if (group === "dining") return <DiningAddon key={group} options={options} selectedId={picked?.id} onChoose={choose} />;
+    if (group === "bbq") return <BarbecueAddon key={group} options={options} selectedId={picked?.id} onChoose={choose} />;
+    return <VariantAddon key={group} options={options} selectedId={picked?.id} included={Object.keys(covered)} onChoose={choose} />;
+  }
+
+  return (
+    <Accordion type="multiple" defaultValue={["hospitality"]} className="resort-extras">
+      {groups.map(group => {
+        const items = catalog.filter(item => item.group === group.id);
+        const chosen = selected.filter(item => item.group === group.id);
+        const variantGroups = [...new Set(items.flatMap(item => item.variantGroup ? [item.variantGroup] : []))];
+        return (
+          <AccordionItem key={group.id} value={group.id}>
+            <AccordionTrigger className="extras-trigger">
+              <span className="extras-heading"><group.icon size={23} />
+                <span><strong>{group.title}</strong><small>{chosen.length ? chosen.map(item => {
+                  const quantity = addonQuantity(item, selection.quantities);
+                  return quantity > 1 ? item.title + " × " + quantity : item.title;
+                }).join(" · ") : group.hint}</small></span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              {group.id === "seating" ? (
+                <SeatingAddons selected={selection.ids} onChange={ids => onChange(normalizeAddons(ids, selection.quantities, "resort"))} />
+              ) : group.id === "decor" ? (
+                <><p className="extras-hint">اختر تنسيقًا واحدًا للكوخ</p>{items.map(itemRow)}</>
+              ) : (
+                <>
+                  {group.id === "hospitality" && <p className="extras-hint">يمكنك الجمع بين باقات الضيافة وتحديد عدد كل باقة</p>}
+                  {items.filter(item => !item.variantGroup).map(itemRow)}
+                  {variantGroups.map(variant => variants(variant, items.filter(item => item.variantGroup === variant)))}
+                </>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
+  );
 }

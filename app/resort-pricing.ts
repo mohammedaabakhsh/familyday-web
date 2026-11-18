@@ -1,4 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
+import { addonLinePrice, includedUnits } from "./addon-selection";
 import type { BookingAddon } from "./booking-addons";
 import { getResortOffer, getOfferIssue, normalizeExtensionHours, offerCheckoutLabel, type ResortOfferId } from "./resort-offers";
 
@@ -13,10 +14,10 @@ export type ResortPriceContext = { cabinId?: string; offerId?: ResortOfferId | n
 export function getResortPrice(from: string, to: string, addons: BookingAddon[] = [], quantities: Record<string, number> = {}, context: ResortPriceContext = {}) {
  const nights = differenceInCalendarDays(new Date(`${to}T12:00:00`), new Date(`${from}T12:00:00`));
  if (!Number.isFinite(nights) || nights < 1) return null;
- const included = new Set(addons.flatMap(addon => addon.included ?? []));
- const extras = addons.filter(addon => !included.has(addon.id) && (!addon.requiresGroup || addons.some(parent => parent.variantGroup === addon.requiresGroup)));
+ const extras = addons.filter(addon => !addon.requiresGroup || addons.some(parent => parent.variantGroup === addon.requiresGroup));
+ const included = includedUnits(extras, quantities);
  const unpriced = extras.filter(addon => addon.price === undefined).map(addon => addon.title);
- const extrasAmount = extras.reduce((sum, addon) => sum + (addon.price ?? 0) * (addon.quantity ? Math.max(1, Math.floor(quantities[addon.id] ?? 1)) : 1), 0);
+ const extrasAmount = extras.reduce((sum, addon) => sum + (addonLinePrice(addon, quantities, included) ?? 0), 0);
  const requestedOffer = getResortOffer(context.offerId, context.cabinId);
  const offerIssue = getOfferIssue(requestedOffer, from, to);
  const offer = offerIssue ? null : requestedOffer;

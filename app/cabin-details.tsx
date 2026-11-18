@@ -14,7 +14,7 @@ function FeatureList({items, isolateMeasurements = false}: {items: string[]; iso
  return <ul className="detail-feature-list">{items.map(item => <li key={item}><Check size={17}/><span>{isolateMeasurements ? item.split(/(\d+ × \d+)/).map((part, index) => /\d+ × \d+/.test(part) ? <bdi key={index} dir="ltr">{part}</bdi> : part) : item}</span></li>)}</ul>;
 }
 
-export default function CabinDetails({cabin, onPolicy, priceSummary, checkoutLabel = "12 ظهرًا"}: {cabin: Cabin; onPolicy: () => void; priceSummary?: ReactNode; checkoutLabel?: string}) {
+export default function CabinDetails({cabin, onPolicy, onBrowseExtras, priceSummary, checkoutLabel = "12 ظهرًا"}: {cabin: Cabin; onPolicy: () => void; onBrowseExtras: () => void; priceSummary?: ReactNode; checkoutLabel?: string}) {
  const isResort = cabin.property === "resort";
  const outdoorItems = isResort
   ? [...cabin.outdoor, cabin.pool, ...cabin.poolNotes, ...cabin.poolFacilities]
@@ -23,6 +23,9 @@ export default function CabinDetails({cabin, onPolicy, priceSummary, checkoutLab
   <div className="cabin-title"><span className="eyebrow"><MapPin size={14}/>{getProperty(cabin.property)?.name}</span><h1>{cabin.name}</h1><p>{cabin.suitable} – {guests(cabin.capacity)}</p></div>
   {getProperty(cabin.property)?.kind !== "resthouse" && <p className="description">{cabin.description}</p>}
   {priceSummary}
+  {isResort && <button type="button" className="resort-offers-entry service-preview-entry" onClick={onBrowseExtras}>
+    <Sparkles size={21}/><span><strong>الضيافة والتنسيقات</strong><small>استعرض الباقات والطلبات الإضافية</small></span><ChevronLeft size={19}/>
+  </button>}
 
   <Accordion type="multiple" className="detail-accordion">
   <AccordionItem value="indoor"><AccordionTrigger><span><Home size={21}/>{isResort ? "داخل الكوخ" : "المنطقة الداخلية"}</span></AccordionTrigger><AccordionContent><FeatureList items={cabin.indoor}/></AccordionContent></AccordionItem>
