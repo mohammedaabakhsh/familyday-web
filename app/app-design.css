@@ -2708,3 +2708,12 @@ small {
 .immediate-options button { display: grid; align-content: start; justify-items: start; gap: 3px; min-width: 0; padding: 11px; text-align: start; }
 .immediate-options .option-action { margin-top: 4px; font-size: .8rem; font-weight: 700; color: var(--brand-text); text-decoration: underline; }
 .immediate-options .selected .option-action { color: inherit; }
+
+.review-remove { color: #954033; padding: 6px 9px; min-height: 44px; font-size: .83rem; text-decoration: underline; }
+.addon-list li { align-items: center; }
+.addon-list .addon-review-price { margin-inline-start: auto; }
+.addon-list li > svg { flex-shrink: 0; }
+.stay-bundle { width: 100%; margin-top: 16px; text-align: start; }
+.stay-bundle > span { flex: 1; }
+.stay-bundle small { margin-top: 3px; }
+.stay-total p { margin: 6px 0; }

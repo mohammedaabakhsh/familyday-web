@@ -78,7 +78,7 @@ export default function AddonItem({ addon, count, covered, onCount }: Props) {
         </div>
       )}
       {(addon.details.length > 0 || hasPhotos || addon.note) && (
-        <details ref={detailRef} className="extra-details" onToggle={event => setExpanded(event.currentTarget.open)}>
+        <details name={"addon-details-" + addon.group} ref={detailRef} className="extra-details" onToggle={event => setExpanded(event.currentTarget.open)}>
           <summary>{hasPhotos ? "الصور وتفاصيل الباقة" : isPackage ? "تفاصيل الباقة" : "التفاصيل"}</summary>
           {expanded && hasPhotos && <PackagePhotos photos={addon.photos!} title={addon.title} />}
           <ul>{addon.details.map(detail => <li key={detail}>{detail}</li>)}</ul>

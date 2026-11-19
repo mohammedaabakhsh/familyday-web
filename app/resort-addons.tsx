@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Armchair, Coffee, Flower2, Gamepad2, ShoppingBasket, UtensilsCrossed } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import AddonItem from "./addon-item";
@@ -22,6 +23,7 @@ const groups = [
 const catalog = getAllowedAddons("resort");
 
 export default function ResortAddons({ selection, onChange }: { selection: AddonSelection; onChange: (next: AddonSelection) => void }) {
+  const [openGroup, setOpenGroup] = useState("");
   const selected = catalog.filter(item => selection.ids.includes(item.id));
   const covered = includedUnits(selected, selection.quantities);
   const choose = (item: BookingAddon) => onChange(changeAddon(selection, item, selection.ids.includes(item.id) ? 0 : 1));
@@ -40,7 +42,7 @@ export default function ResortAddons({ selection, onChange }: { selection: Addon
   }
 
   return (
-    <Accordion type="single" collapsible className="resort-extras">
+    <Accordion type="single" collapsible value={openGroup} onValueChange={setOpenGroup} className="resort-extras">
       {groups.map(group => {
         const items = catalog.filter(item => item.group === group.id);
         const chosen = selected.filter(item => item.group === group.id);

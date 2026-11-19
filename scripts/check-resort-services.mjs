@@ -14,6 +14,15 @@ try {
   const { changeAddon, EMPTY_ADDONS, addonLinePrice, includedUnits } = await vite.ssrLoadModule("/app/addon-selection.ts");
   const { readBookingDraft } = await vite.ssrLoadModule("/app/booking-draft.ts");
   const { getResortPrice, getNightlyRate } = await vite.ssrLoadModule("/app/resort-pricing.ts");
+  const { stayQuote, sectionAvailability } = await vite.ssrLoadModule("/app/stay-pricing.ts");
+  const rates = { firstSectionNightly: 400, secondSectionNightly: 450, bothSectionsNightly: 700, firstOfferNight: "2027-01-01", lastOfferNight: "2027-01-02" };
+  assert.deepEqual(stayQuote("both","2026-12-31","2027-01-04",rates),{original:3400,savings:300,amount:3100});
+  assert.equal(stayQuote("both","2027-01-03","2027-01-04",rates).amount,850);
+  assert.equal(stayQuote("20","2027-01-01","2027-01-02",rates).amount,400);
+  assert.equal(stayQuote("both","2027-01-01","2027-01-02",{...rates,firstSectionNightly:null}),null);
+  for (const [first,second,expected] of [["available","available","available"],["available","unknown","unknown"],["unknown","unavailable","unavailable"]]) {
+    assert.equal(sectionAvailability("both",{connection:"connected",stays:[{id:"20",status:first},{id:"21",status:second}]}),expected);
+  }
   const { readRoute, routeHash, isBookingStep } = await vite.ssrLoadModule("/app/booking-navigation.ts");
   for (const resume of [undefined, "review", "cabin"]) {
     assert.deepEqual(readRoute(routeHash("dates", "1", resume), "departure"), { screen: "dates", id: "1", resume, field: "departure" });

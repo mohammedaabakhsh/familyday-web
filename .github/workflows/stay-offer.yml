@@ -1,0 +1,53 @@
+name: إدارة أسعار وعرض الاستراحة
+on:
+  workflow_dispatch:
+    inputs:
+      first:
+        description: سعر القسم الأول لليلة بالريال
+        required: true
+        type: number
+      second:
+        description: سعر القسم الثاني لليلة بالريال
+        required: true
+        type: number
+      combined:
+        description: سعر القسمين لليلة أثناء العرض (اترك الحقل فارغًا لإيقاف العرض)
+        type: string
+      start:
+        description: أول ليلة للعرض بصيغة YYYY-MM-DD
+        type: string
+      end:
+        description: آخر ليلة للعرض بصيغة YYYY-MM-DD
+        type: string
+concurrency:
+  group: stay-offer-editor
+  cancel-in-progress: false
+jobs:
+  save:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: تحقق من الأسعار والتواريخ واحفظها
+        env:
+          FIRST: ${{ inputs.first }}
+          SECOND: ${{ inputs.second }}
+          COMBINED: ${{ inputs.combined }}
+          START: ${{ inputs.start }}
+          END: ${{ inputs.end }}
+        run: node scripts/save-stay-offer.mjs
+      - name: نشر تحديث أسعار الاستراحة
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! git diff --quiet -- app/stay-offer.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -- app/stay-offer.json
+            git commit -m "Update rest house section prices and offer"
+            git push origin HEAD:main
+          fi
+          gh workflow run pages.yml --ref main

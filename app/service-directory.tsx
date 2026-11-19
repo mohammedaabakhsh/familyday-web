@@ -17,13 +17,13 @@ const seating = resort.filter(item => item.variantGroup === "outdoor");
 const dining = resort.filter(item => item.variantGroup === "dining");
 const venues = PROPERTIES.filter(place => !place.disabled);
 
-function Section({ title, subtitle, icon: Icon, cover, children }: {
-  title: string; subtitle?: string; icon: LucideIcon; cover?: string; children: ReactNode;
+function Section({ title, subtitle, icon: Icon, children }: {
+  title: string; subtitle?: string; icon: LucideIcon; children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  return <details className={"guide-section" + (cover ? " guide-featured" : "")} onToggle={event => setOpen(event.currentTarget.open)}>
+  return <details className="guide-section" name="venue-service-categories" onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>
-      {cover ? <img className="guide-cover" src={cover} alt="" /> : <Icon className="guide-category-icon" size={23} />}
+      <Icon className="guide-category-icon" size={23} />
       <span className="guide-section-label"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</span>
       <ChevronDown className="guide-chevron" size={18} />
     </summary>
@@ -108,7 +108,7 @@ function Leisure({ chalet = false }: {chalet?: boolean}) {
 function ResortGuide() {
   const cake = byId.get("seating-cake")!;
   return <>
-    <Section title="تنسيقات المناسبات" subtitle="من الورد إلى تجهيز الاحتفال، ويفضل ترتيب الباقة قبل الوصول" icon={Flower2} cover={decor[1].photos![0]}>
+    <Section title="تنسيقات المناسبات" subtitle="من الورد إلى تجهيز الاحتفال، ويفضل ترتيب الباقة قبل الوصول" icon={Flower2}>
       <Note>{guide.notes.coordination}</Note>
       {decor.map(item => <Item key={item.id} item={item} />)}
     </Section>
