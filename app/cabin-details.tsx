@@ -7,7 +7,7 @@ import { getProperty } from "./property-catalog";
 import { VenueMapLink } from "./venue-locations";
 
 type Cabin = typeof cabinData[number];
-const guests = (value: number) => value === 2 ? "حتى ضيفين" : `حتى ${value} ${value <= 10 ? "ضيوف" : "ضيفا"}`;
+const guests = (value: number) => value === 2 ? "حتى ضيفين" : `حتى ${value} ${value <= 10 ? "ضيوف" : "ضيفًا"}`;
 
 function FeatureList({ items }: { items: string[] }) {
   return <ul className="detail-feature-list">{items.map(item => <li key={item}><Check size={17} /><span>
@@ -33,20 +33,20 @@ export default function CabinDetails({ cabin, onPolicy, onBrowseServices, checko
   return <div className="detail-body cabin-complete-details">
     <div className="cabin-title">
       <VenueMapLink place={place} />
-      {cabin.id === 2 ?
-        <div className="pyramid-heading"><h1>{cabin.name}</h1><span>{cabin.suitable}</span></div>
+      {isResort ?
+        <div className="cabin-summary-heading"><h1>{cabin.name}</h1><span>{cabin.suitable}</span></div>
       : <>
         <h1>{cabin.name}</h1>
-        <p>{cabin.suitable} · {guests(cabin.capacity)}{isResort && <> · {cabin.rooms === 1 ? "غرفة نوم واحدة" : "غرفتا نوم"}</>}</p>
+        <p>{cabin.suitable} · {guests(cabin.capacity)}</p>
       </>}
     </div>
     {isResort && <p className="description">{cabin.description}</p>}
-    {cabin.id === 2 &&
-      <dl className="pyramid-facts">
+    {isResort && cabin.quickFacts &&
+      <dl className="cabin-summary-facts">
         <div><dt><UsersRound aria-hidden="true" />السعة</dt><dd>{guests(cabin.capacity)}</dd></div>
-        <div><dt><DoorOpen aria-hidden="true" />غرف النوم</dt><dd>غرفة واحدة</dd></div>
-        <div><dt><BedDouble aria-hidden="true" />الأسرّة</dt><dd>سرير مزدوج</dd></div>
-        <div><dt><Waves aria-hidden="true" />المسبح الخاص</dt><dd><bdi dir="ltr">4 × 4</bdi> م</dd></div>
+        <div><dt><DoorOpen aria-hidden="true" />غرف النوم</dt><dd>{cabin.rooms === 1 ? "غرفة واحدة" : "غرفتان"}</dd></div>
+        <div><dt><BedDouble aria-hidden="true" />الأسرّة</dt><dd>{cabin.quickFacts.beds}</dd></div>
+        <div><dt><Waves aria-hidden="true" />المسبح الخاص</dt><dd><bdi dir="ltr">{cabin.quickFacts.poolDimensions}</bdi> م{cabin.quickFacts.poolJacuzzi && <> مع جاكوزي</>}</dd></div>
       </dl>}
     {cabin.combinedNote && <aside className="cabin-combined-note"><strong>حجز الكوخين معا</strong><p>{cabin.combinedNote}</p></aside>}
     <Accordion type="multiple" className="detail-accordion">

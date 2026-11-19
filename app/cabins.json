@@ -2,6 +2,7 @@
   {
     "id": 1,
     "name": "بيت الدوم 1",
+    "quickFacts": {"beds": "سرير مزدوج", "poolDimensions": "7 × 4", "poolJacuzzi": true},
     "property": "resort",
     "description": "تجمع القبة غرفة النوم والصالة في مساحة واحدة، والبانيو داخل غرفة النوم",
     "suitable": "مناسب للأزواج",
@@ -49,6 +50,7 @@
   {
     "id": 12,
     "name": "بيت الدوم 2",
+    "quickFacts": {"beds": "سرير مزدوج", "poolDimensions": "7 × 4", "poolJacuzzi": true},
     "property": "resort",
     "description": "تجمع القبة غرفة النوم والصالة في مساحة واحدة، والبانيو داخل غرفة النوم",
     "suitable": "مناسب للأزواج",
@@ -97,6 +99,7 @@
   {
     "id": 2,
     "name": "الكوخ الهرمي",
+    "quickFacts": {"beds": "سرير مزدوج", "poolDimensions": "4 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "كوخ خشبي بتصميم هرمي مع بانيو خارجي بخصوصية كاملة",
     "suitable": "مناسب للأزواج",
@@ -144,6 +147,7 @@
   {
     "id": 3,
     "name": "الكوخ الكلاسيكي",
+    "quickFacts": {"beds": "سرير مزدوج", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "صالة داخلية واسعة لجمعتكم",
     "suitable": "مناسب للعائلات",
@@ -190,6 +194,7 @@
   {
     "id": 4,
     "name": "البيت اليوناني 1",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "طابع يوناني يجمع اللمسات التراثية والبساطة الحديثة",
     "suitable": "مناسب للعائلات",
@@ -237,6 +242,7 @@
   {
     "id": 13,
     "name": "البيت اليوناني 2",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "طابع يوناني يجمع اللمسات التراثية والبساطة الحديثة",
     "suitable": "مناسب للعائلات",
@@ -285,6 +291,7 @@
   {
     "id": 5,
     "name": "كوخ بالم بيتش",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "أجواء بطابع أفريقي تجمع الخشب والبامبو والقش",
     "suitable": "مناسب للعائلات",
@@ -332,6 +339,7 @@
   {
     "id": 6,
     "name": "الكوخ البوهيمي",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "طابع بوهيمي بسيط بلمسات مستوحاة من الطبيعة",
     "suitable": "مناسب للعائلات",
@@ -379,6 +387,7 @@
   {
     "id": 7,
     "name": "الكوخ الفرنسي",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "كوخ خشبي بطابع فرنسي",
     "suitable": "مناسب للعائلات",
@@ -426,6 +435,7 @@
   {
     "id": 8,
     "name": "الكوخ الريفي",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "أجواء ريفية مستوحاة من الطراز الأوروبي",
     "suitable": "مناسب للعائلات",
@@ -473,6 +483,7 @@
   {
     "id": 9,
     "name": "كوخ رويال",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "أكبر أكواخ المنتجع، بطابع ريفي",
     "suitable": "مناسب للعائلات",
@@ -520,6 +531,7 @@
   {
     "id": 10,
     "name": "البيت البانورامي",
+    "quickFacts": {"beds": "مزدوج + سريران مفردان", "poolDimensions": "7 × 4", "poolJacuzzi": false},
     "property": "resort",
     "description": "واجهات زجاجية تطل على حديقة خاصة، وبانيو مع جاكوزي داخل غرفة النوم",
     "suitable": "مناسب للعائلات",
