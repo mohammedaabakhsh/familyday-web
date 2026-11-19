@@ -740,6 +740,49 @@ small {
   margin-right: auto;
   text-decoration: underline;
 }
+.pyramid-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.pyramid-heading span {
+  background: #edf6f6;
+  color: #266872;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: .78rem;
+}
+.pyramid-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(4px, 1.5vw, 9px);
+  margin: 16px 0 0;
+}
+.pyramid-facts > div {
+  background: #f5f9fa;
+  border: 1px solid #dee8ea;
+  border-radius: 12px;
+  text-align: center;
+  padding: 10px 2px;
+}
+.pyramid-facts dt {
+  color: #536874;
+  font-size: .76rem;
+}
+.pyramid-facts svg {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto 5px;
+  display: block;
+  color: #347b85;
+}
+.pyramid-facts dd {
+  color: #183748;
+  font-size: .86rem;
+  font-weight: 700;
+  margin: 2px 0 0;
+}
 .cabin-title .eyebrow {
   display: flex;
   gap: 5px;

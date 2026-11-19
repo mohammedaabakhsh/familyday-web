@@ -1,6 +1,6 @@
 "use client";
 
-import { Armchair, BedDouble, Check, ChefHat, ChevronLeft, Clock3, Home, Info, ShieldCheck, UtensilsCrossed, Waves } from "lucide-react";
+import { Armchair, BedDouble, Check, ChefHat, ChevronLeft, Clock3, DoorOpen, UsersRound, Home, Info, ShieldCheck, UtensilsCrossed, Waves } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import cabinData from "./cabins.json";
 import { getProperty } from "./property-catalog";
@@ -33,8 +33,18 @@ export default function CabinDetails({ cabin, onPolicy, onBrowseServices, checko
   return <div className="detail-body cabin-complete-details">
     <div className="cabin-title">
       <VenueMapLink place={place} />
-      <h1>{cabin.name}</h1>
-      <p>{cabin.suitable} · {guests(cabin.capacity)}{isResort && <> · {cabin.rooms === 1 ? "غرفة نوم واحدة" : "غرفتا نوم"}</>}</p>
+      {cabin.id === 2 ? <>
+        <div className="pyramid-heading"><h1>{cabin.name}</h1><span>{cabin.suitable}</span></div>
+        <dl className="pyramid-facts">
+          <div><dt><UsersRound aria-hidden="true" />السعة</dt><dd>{guests(cabin.capacity)}</dd></div>
+          <div><dt><DoorOpen aria-hidden="true" />غرف النوم</dt><dd>غرفة واحدة</dd></div>
+          <div><dt><BedDouble aria-hidden="true" />الأسرّة</dt><dd>سرير مزدوج</dd></div>
+          <div><dt><Waves aria-hidden="true" />المسبح الخاص</dt><dd><bdi>٤ × ٤</bdi> م</dd></div>
+        </dl>
+      </> : <>
+        <h1>{cabin.name}</h1>
+        <p>{cabin.suitable} · {guests(cabin.capacity)}{isResort && <> · {cabin.rooms === 1 ? "غرفة نوم واحدة" : "غرفتا نوم"}</>}</p>
+      </>}
     </div>
     {isResort && <p className="description">{cabin.description}</p>}
     {cabin.combinedNote && <aside className="cabin-combined-note"><strong>حجز الكوخين معا</strong><p>{cabin.combinedNote}</p></aside>}
